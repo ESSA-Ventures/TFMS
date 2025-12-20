@@ -1,3 +1,9 @@
+## MySQL database : app_tfms.sql
+
+## Username : essaventures2025@gmail.com   Password : Essa123!
+
+
+
 # Readme for worksuite
 ### Plugins used in the app
 
