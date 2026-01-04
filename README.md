@@ -23,20 +23,20 @@
 ### Docker setup (PHP 8.3, MySQL 8.3)
 
 1. Prereqs: install Docker Desktop (or compatible engine).
-2. Copy `.env.example` to `.env` and set `DB_HOST=db`, `DB_PORT=3306`, `DB_DATABASE=tfms`, `DB_USERNAME=tfms`, `DB_PASSWORD=tfms` (defaults in compose). Keep `APP_URL=http://localhost:8080`.
+2. Copy `.env.example` to `.env` and set `DB_HOST=mysql`, `DB_PORT=3306`, `DB_DATABASE=app_tfms`, `DB_USERNAME=app_tfms`, `DB_PASSWORD="Tfm123!"` (compose defaults; host port is 6606 but service listens on 3306). Set `APP_URL=http://localhost:6060`.
 3. Start the stack: `docker compose up -d --build` (first run builds the PHP image).
 4. Install backend deps: `docker compose exec app composer install --ignore-platform-req=php` (lock targets PHP 8.2 while runtime is 8.3).
 5. Generate app key: `docker compose exec app php artisan key:generate`.
-6. Run migrations/seed or import `app_tfms.sql`: `docker compose exec -e DB_CONNECTION=mysql -e DB_HOST=db -e DB_PORT=3306 -e DB_DATABASE=tfms -e DB_USERNAME=tfms -e DB_PASSWORD=tfms -e MYSQL_SSL_MODE=DISABLED app sh -c "rm -f database/schema/mysql-schema.dump && php artisan migrate --seed"` or `docker compose exec -T db mysql -utfms -ptfms tfms < app_tfms.sql`.
+6. Run migrations/seed or import `app_tfms.sql`: `docker compose exec -e DB_CONNECTION=mysql -e DB_HOST=mysql -e DB_PORT=3306 -e DB_DATABASE=app_tfms -e DB_USERNAME=app_tfms -e DB_PASSWORD="Tfm123!" -e MYSQL_SSL_MODE=DISABLED app sh -c "rm -f database/schema/mysql-schema.dump && php artisan migrate --seed"` or `docker compose exec -T mysql mysql -uapp_tfms -papp_tfms -h mysql -P 3306 app_tfms < app_tfms.sql` (host access uses port 6606).
 7. Frontend assets (Laravel Mix): `docker compose exec node npm install` then `docker compose exec node npm run prod` (or `npm run dev`/`npm run watch`).
-8. Open http://localhost:8080; database exposed on host port 3307 (maps to container 3306).
+8. Open http://localhost:6060; Adminer UI on http://localhost:6061; database exposed on host port 6606 (container listens on 3306).
 
-Helpful containers: `app` (php-fpm 8.3), `web` (nginx), `db` (mysql 8.3), `node` (npm scripts). Stop everything with `docker compose down`.
+Helpful containers: `app` (php-fpm 8.3), `nginx` (frontend), `mysql` (MySQL 8.1), `node` (npm scripts), `adminer` (DB UI at 6001). Stop everything with `docker compose down --remove-orphans` to clean old containers.
 
 ### Make shortcuts
 
 - `make up` — build and start containers in the background.
-- `make dev` — ensure containers are up, wait for MySQL, install composer deps (ignoring PHP platform), generate app key, run migrations (forcing DB host/port/database/user/pass and disabling MySQL SSL), install npm packages, and build assets with `npm run dev`.
+- `make dev` — build app image, composer install with PHP req ignored, key generate, fix permissions, then `docker compose up -d`.
 - `make perms` — fix storage/bootstrap/cache ownership and permissions for the app container.
 - `make down` — stop and remove containers.
     <li>

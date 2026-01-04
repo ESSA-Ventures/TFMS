@@ -1,40 +1,19 @@
-FROM php:8.3-fpm
+FROM php:8.3-fpm-bullseye
 
-# System dependencies required by common Laravel stacks
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        git \
-        unzip \
-        libzip-dev \
-        libpng-dev \
-        libjpeg62-turbo-dev \
-        libfreetype6-dev \
-        libicu-dev \
-        libonig-dev \
-        libxml2-dev \
-        libssl-dev \
-        libcurl4-openssl-dev \
-        zlib1g-dev \
-        mariadb-client \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" \
-        bcmath \
-        exif \
-        gd \
-        intl \
-        mbstring \
-        opcache \
-        pcntl \
-        pdo_mysql \
-        zip \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apt-get clean \
+    git curl unzip libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+    libonig-dev libxml2-dev libssl-dev libkrb5-dev libc-client-dev libxslt1-dev libgmp-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+# Enable extensions needed by the app (includes imap for Webklex)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure imap --with-kerberos --with-imap-ssl=/usr \
+    && docker-php-ext-install -j"$(nproc)" pdo_mysql zip intl gd imap bcmath opcache exif gmp xsl
+
+# Install Composer inside the container
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
-
-# Default user stays www-data; adjust ownership at runtime if needed

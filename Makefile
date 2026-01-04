@@ -1,30 +1,58 @@
-.PHONY: up down dev perms
+DC = docker compose
+APP = app
+NODE = node
+COMPOSER_FLAGS = --ignore-platform-req=php
 
-COMPOSE ?= docker compose
+.PHONY: help dev build up down install key perms migrate seed fresh npm-install npm-dev npm-build bash logs
+
+help:
+	@echo "Targets: dev, build, up, down, install, key, perms, migrate, seed, fresh, npm-install, npm-dev, npm-build, bash, logs"
+
+dev:
+	$(DC) build $(APP)
+	$(DC) run --rm $(APP) composer install $(COMPOSER_FLAGS)
+	$(DC) run --rm $(APP) php artisan key:generate
+	$(DC) run --rm $(APP) sh -c "chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage/app storage/framework storage/logs bootstrap/cache"
+	$(DC) up -d
+
+build:
+	$(DC) build $(APP)
 
 up:
-	$(COMPOSE) up -d --build
+	$(DC) up -d
 
 down:
-	$(COMPOSE) down
+	$(DC) down
 
-dev: up
-	$(COMPOSE) exec db mysqladmin --silent --wait=30 -utfms -ptfms ping
-	$(COMPOSE) exec app composer install --no-interaction --ignore-platform-req=php
-	$(COMPOSE) exec app php artisan key:generate --force
-	$(COMPOSE) exec app sh -c "rm -f database/schema/mysql-schema.dump"
-	$(COMPOSE) exec \
-		-e DB_CONNECTION=mysql \
-		-e DB_HOST=db \
-		-e DB_PORT=3306 \
-		-e DB_DATABASE=tfms \
-		-e DB_USERNAME=tfms \
-		-e DB_PASSWORD=tfms \
-		-e MYSQL_SSL_MODE=DISABLED \
-		app php artisan migrate --force
-	$(COMPOSE) exec node npm install
-	$(COMPOSE) exec node npm run dev
+install:
+	$(DC) run --rm $(APP) composer install $(COMPOSER_FLAGS)
+
+key:
+	$(DC) run --rm $(APP) php artisan key:generate
 
 perms:
-	$(COMPOSE) exec -T app chown -R www-data:www-data storage bootstrap/cache
-	$(COMPOSE) exec -T app chmod -R ug+rw storage bootstrap/cache
+	$(DC) run --rm $(APP) sh -c "chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage/app storage/framework storage/logs bootstrap/cache"
+
+migrate:
+	$(DC) run --rm $(APP) php artisan migrate
+
+seed:
+	$(DC) run --rm $(APP) php artisan db:seed
+
+fresh:
+	$(DC) run --rm $(APP) php artisan migrate:fresh --seed
+
+npm-install:
+	$(DC) run --rm $(NODE) npm install
+
+npm-dev:
+	$(DC) run --rm $(NODE) npm run dev -- --watch
+
+npm-build:
+	$(DC) run --rm $(NODE) npm run build
+
+bash:
+	$(DC) exec $(APP) bash
+
+logs:
+	$(DC) logs -f
