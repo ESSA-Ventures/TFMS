@@ -19,6 +19,26 @@
     <li>
         <strong>Moment.js </strong> - <a href="https://momentjs.com/">https://momentjs.com/</a>
     </li>
+
+### Docker setup (PHP 8.3, MySQL 8.3)
+
+1. Prereqs: install Docker Desktop (or compatible engine).
+2. Copy `.env.example` to `.env` and set `DB_HOST=db`, `DB_PORT=3306`, `DB_DATABASE=tfms`, `DB_USERNAME=tfms`, `DB_PASSWORD=tfms` (defaults in compose). Keep `APP_URL=http://localhost:8080`.
+3. Start the stack: `docker compose up -d --build` (first run builds the PHP image).
+4. Install backend deps: `docker compose exec app composer install --ignore-platform-req=php` (lock targets PHP 8.2 while runtime is 8.3).
+5. Generate app key: `docker compose exec app php artisan key:generate`.
+6. Run migrations/seed or import `app_tfms.sql`: `docker compose exec -e DB_CONNECTION=mysql -e DB_HOST=db -e DB_PORT=3306 -e DB_DATABASE=tfms -e DB_USERNAME=tfms -e DB_PASSWORD=tfms -e MYSQL_SSL_MODE=DISABLED app sh -c "rm -f database/schema/mysql-schema.dump && php artisan migrate --seed"` or `docker compose exec -T db mysql -utfms -ptfms tfms < app_tfms.sql`.
+7. Frontend assets (Laravel Mix): `docker compose exec node npm install` then `docker compose exec node npm run prod` (or `npm run dev`/`npm run watch`).
+8. Open http://localhost:8080; database exposed on host port 3307 (maps to container 3306).
+
+Helpful containers: `app` (php-fpm 8.3), `web` (nginx), `db` (mysql 8.3), `node` (npm scripts). Stop everything with `docker compose down`.
+
+### Make shortcuts
+
+- `make up` — build and start containers in the background.
+- `make dev` — ensure containers are up, wait for MySQL, install composer deps (ignoring PHP platform), generate app key, run migrations (forcing DB host/port/database/user/pass and disabling MySQL SSL), install npm packages, and build assets with `npm run dev`.
+- `make perms` — fix storage/bootstrap/cache ownership and permissions for the app container.
+- `make down` — stop and remove containers.
     <li>
         <strong>Bootstrap Select</strong> - <a href="https://developer.snapappointments.com/bootstrap-select/">https://developer.snapappointments.com/bootstrap-select/</a>
     </li>
