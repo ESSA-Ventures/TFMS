@@ -118,6 +118,23 @@ class EmployeesDataTable extends BaseDataTable
 
             $action .= '<a href="' . route('employees.show', [$row->id]) . '" class="dropdown-item"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
 
+            if ($row->is_locked) {
+                if ($this->editEmployeePermission == 'all' || in_array('admin', user_roles())) {
+                    $action .= '<a class="dropdown-item unlock-user" href="javascript:;" data-user-id="' . $row->id . '">
+                                <i class="fa fa-unlock mr-2"></i>
+                                ' . __('app.unlock') . '
+                            </a>';
+                }
+            } else {
+                 if ($this->editEmployeePermission == 'all' || in_array('admin', user_roles())) {
+                    $action .= '<a class="dropdown-item reset-password" href="javascript:;" data-user-id="' . $row->id . '">
+                                <i class="fa fa-refresh mr-2"></i>
+                                ' . __('app.resetPassword') . '
+                            </a>';
+                }
+            }
+
+
             if ($this->editEmployeePermission == 'all'
                 || ($this->editEmployeePermission == 'added' && user()->id == $row->added_by)
                 || ($this->editEmployeePermission == 'owned' && user()->id == $row->id)
@@ -158,6 +175,10 @@ class EmployeesDataTable extends BaseDataTable
         $datatables->editColumn(
             'status',
             function ($row) {
+                if ($row->is_locked) {
+                    return '<i class="fa fa-circle mr-1 text-red f-10"></i>' . __('app.locked');
+                }
+                
                 if ($row->status == 'active') {
                     return ' <i class="fa fa-circle mr-1 text-light-green f-10"></i>' . __('app.active');
                 }
@@ -207,13 +228,14 @@ class EmployeesDataTable extends BaseDataTable
             $userRoles = Role::findOrFail($request->role);
         }
 
-        $users = $model->with('role', 'roles', 'employeeDetail', 'session')
+        $users = $model->with('role', 'roles', 'employeeDetail', 'session', 'userAuth')
             ->withoutGlobalScope(ActiveScope::class)
             ->join('role_user', 'role_user.user_id', '=', 'users.id')
             ->leftJoin('employee_details', 'employee_details.user_id', '=', 'users.id')
             ->leftJoin('designations', 'employee_details.designation_id', '=', 'designations.id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
-            ->select('users.id', 'employee_details.added_by', 'users.name', 'users.email', 'users.created_at', 'roles.name as roleName', 'roles.id as roleId', 'users.image', 'users.gender', 'users.status', DB::raw('(select user_roles.role_id from role_user as user_roles where user_roles.user_id = users.id ORDER BY user_roles.role_id DESC limit 1) as `current_role`'), DB::raw('(select roles.name from roles as roles where roles.id = current_role limit 1) as `current_role_name`'), 'designations.name as designation_name', 'employee_details.employee_id', 'employee_details.joining_date')
+            ->join('user_auths', 'user_auths.id', '=', 'users.user_auth_id')
+            ->select('users.id', 'employee_details.added_by', 'users.name', 'users.email', 'users.created_at', 'roles.name as roleName', 'roles.id as roleId', 'users.image', 'users.gender', 'users.status', 'user_auths.is_locked', DB::raw('(select user_roles.role_id from role_user as user_roles where user_roles.user_id = users.id ORDER BY user_roles.role_id DESC limit 1) as `current_role`'), DB::raw('(select roles.name from roles as roles where roles.id = current_role limit 1) as `current_role_name`'), 'designations.name as designation_name', 'employee_details.employee_id', 'employee_details.joining_date')
             ->onlyEmployee();
 
 
@@ -222,6 +244,15 @@ class EmployeesDataTable extends BaseDataTable
             if ($request->status === 'ex_employee') {
                 $users = $users->whereNotNull('employee_details.last_date');
                 $users->whereRaw('Date(employee_details.last_date) <= ?', [now()]);
+            }
+            elseif ($request->status === 'active') {
+                $users = $users->where('users.status', 'active');
+            }
+            elseif ($request->status === 'deactive') {
+                $users = $users->where('users.status', 'deactive');
+            }
+            elseif ($request->status === 'pending') {
+                $users = $users->where('users.status', 'pending');
             }
             else {
                 $users = $users->where('users.status', $request->status);

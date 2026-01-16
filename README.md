@@ -86,3 +86,20 @@ Helpful containers: `app` (php-fpm 8.3), `nginx` (frontend), `mysql` (MySQL 8.1)
 - `make dev` — build app image, composer install with PHP req ignored, key generate, fix permissions, then `docker compose up -d`.
 - `make perms` — fix storage/bootstrap/cache ownership and permissions for the app container.
 - `make down` — stop and remove containers.
+
+### Security Features
+
+#### Account Locking Policy
+- Accounts (Employees and Clients) are automatically **locked** after **3 consecutive failed login attempts** with a valid password format.
+- **Exceptions:** Administrative accounts (Role ID 1) are exempt from locking to prevent total lockout of the system.
+- **Unlocking:** Administrators can unlock accounts from the Client or Employee management lists using the "Unlock" button in the Action column.
+
+#### Password Complexity Requirements
+Password input across the system (Login, Signup, Reset Password, First Login Change Password) must follow these rules:
+- **Minimum 8 characters**, Maximum 16 characters.
+- Must be **alphanumeric** (must contain at least one letter and at least one number).
+- Validation is enforced at both the **frontend** (JavaScript alert) and **backend** (Authentication logic).
+
+#### Default Credentials (Seeded)
+- All accounts seeded via `php artisan db:seed` or `UsersTableSeeder` now use the default password: `TempPass123`.
+- Example Admin: `admin@example.com` / `TempPass123`

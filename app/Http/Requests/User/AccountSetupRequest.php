@@ -30,7 +30,7 @@ class AccountSetupRequest extends FormRequest
             'company_name' => 'required',
             'full_name' => 'required',
             'email' => 'required|email:rfc',
-            'password' => 'required|min:8',
+            'password' => 'required|alpha_num|min:8',
         ];
 
         if ($global && $global->sign_up_terms == 'yes') {

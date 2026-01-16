@@ -98,6 +98,7 @@ use App\Http\Controllers\ContractTemplateController;
 use App\Http\Controllers\EmergencyContactController;
 use App\Http\Controllers\EstimateTemplateController;
 use App\Http\Controllers\ProjectMilestoneController;
+use App\Http\Controllers\FirstLoginController;
 use App\Http\Controllers\ProposalTemplateController;
 use App\Http\Controllers\RecurringExpenseController;
 use App\Http\Controllers\RecurringInvoiceController;
@@ -117,6 +118,10 @@ use App\Http\Controllers\ProjectTemplateSubTaskController;
 use App\Http\Controllers\EmployeeShiftChangeRequestController;
 
 Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified'], 'prefix' => 'account'], function () {
+
+    Route::get('first-login/change-password', [FirstLoginController::class, 'index'])->name('first-login.index');
+    Route::post('first-login/change-password', [FirstLoginController::class, 'store'])->name('first-login.store');
+
     Route::post('image/upload', [ImageController::class, 'store'])->name('image.store');
 
     Route::get('account-unverified', [DashboardController::class, 'accountUnverified'])->name('account_unverified');
@@ -146,6 +151,8 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('clients/import', [ClientController::class, 'importClient'])->name('clients.import');
     Route::post('clients/import', [ClientController::class, 'importStore'])->name('clients.import.store');
     Route::post('clients/import/process', [ClientController::class, 'importProcess'])->name('clients.import.process');
+    Route::post('clients/unlock/{id}', [ClientController::class, 'unlock'])->name('clients.unlock');
+    Route::post('clients/reset-password/{id}', [ClientController::class, 'resetPassword'])->name('clients.reset_password');
     Route::resource('clients', ClientController::class);
     Route::get('clients/finance-count/{id}', [ClientController::class, 'financeCount'])->name('clients.finance_count');
 
@@ -179,6 +186,8 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
 
     Route::get('employees/import/exception/{name}', [ImportController::class, 'getQueueException'])->name('import.process.exception');
     Route::post('employees/send-invite', [EmployeeController::class, 'sendInvite'])->name('employees.send_invite');
+    Route::post('employees/unlock/{id}', [EmployeeController::class, 'unlock'])->name('employees.unlock');
+    Route::post('employees/reset-password/{id}', [EmployeeController::class, 'resetPassword'])->name('employees.reset_password');
     Route::post('employees/create-link', [EmployeeController::class, 'createLink'])->name('employees.create_link');
     Route::resource('employees', EmployeeController::class);
     Route::resource('passport', PassportController::class);
@@ -757,4 +766,9 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('quickbooks/{hash}/callback', [QuickbookController::class, 'callback'])->name('quickbooks.callback');
     Route::get('quickbooks', [QuickbookController::class, 'index'])->name('quickbooks.index');
 
+});
+
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('account/first-login/change-password', [App\Http\Controllers\FirstLoginController::class, 'index'])->name('first-login.index');
+    Route::post('account/first-login/change-password', [App\Http\Controllers\FirstLoginController::class, 'store'])->name('first-login.store');
 });

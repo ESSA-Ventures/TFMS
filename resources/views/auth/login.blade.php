@@ -216,7 +216,30 @@
 
             $(document).ready(function () {
 
-                $("form#login-form").submit(function () {
+                $("form#login-form").submit(function (e) {
+                    const pass = $('#password').val();
+                    const passwordSection = $('#password-section');
+
+                    if (!passwordSection.hasClass('d-none')) {
+                        const regex = /^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9]{8,16}$/;
+                        if (!regex.test(pass)) {
+                            e.preventDefault();
+                            Swal.fire({
+                                icon: 'error',
+                                text: 'Password must be alphanumeric (contain both letters and numbers) and between 8 to 16 characters.',
+                                showConfirmButton: true,
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                                showClass: {
+                                    popup: 'swal2-noanimation',
+                                    backdrop: 'swal2-noanimation'
+                                },
+                            });
+                            return;
+                        }
+                    }
+
                     const button = $('form#login-form').find('#submit-login');
 
                     const text = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{__('app.loading')}}';

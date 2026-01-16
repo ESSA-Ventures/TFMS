@@ -17,6 +17,8 @@ return array(
     'lateHalfday' => 'HalfDay , Present( Late )',
     'addNew' => 'Add New',
     'edit' => 'Edit',
+    'locked' => 'Locked',
+    'unlock' => 'Unlock',
     'defaultStatus' => 'Default Status',
     'id' => 'Id',
     'hierarchy' => 'Hierarchy',

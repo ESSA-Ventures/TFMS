@@ -374,6 +374,50 @@
             });
         });
 
+        $('body').on('click', '.unlock-user', function () {
+            var id = $(this).data('user-id');
+            var url = "{{ route('employees.unlock', ':id') }}";
+            url = url.replace(':id', id);
+
+            var token = "{{ csrf_token() }}";
+
+            $.easyAjax({
+                type: 'POST',
+                url: url,
+                blockUI: true,
+                data: {
+                    '_token': token
+                },
+                success: function (response) {
+                    if (response.status == "success") {
+                         window.LaravelDataTables["employees-table"].draw(false);
+                    }
+                }
+            });
+        });
+
+        $('body').on('click', '.reset-password', function () {
+            var id = $(this).data('user-id');
+            var url = "{{ route('employees.reset_password', ':id') }}";
+            url = url.replace(':id', id);
+
+            var token = "{{ csrf_token() }}";
+
+            $.easyAjax({
+                type: 'POST',
+                url: url,
+                blockUI: true,
+                data: {
+                    '_token': token
+                },
+                success: function (response) {
+                    if (response.status == "success") {
+                         window.LaravelDataTables["employees-table"].draw(false);
+                    }
+                }
+            });
+        });
+
         const applyQuickAction = () => {
             var rowdIds = $("#employees-table input:checkbox:checked").map(function () {
                 return $(this).val();

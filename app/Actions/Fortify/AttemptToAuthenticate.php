@@ -11,6 +11,7 @@ use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\CompanyAddress;
 use App\Models\User;
+use App\Models\UserAuth;
 use App\Scopes\ActiveScope;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Failed;
@@ -61,6 +62,16 @@ class AttemptToAuthenticate
 
     public function handle($request, $next)
     {
+        $userAuth = UserAuth::where('email', $request->email)->first();
+        $user = $userAuth ? $userAuth->user : null;
+        $isAdmin = $user && ($user->is_superadmin || $user->hasRole('admin'));
+
+        if ($userAuth && $userAuth->is_locked && !$isAdmin) {
+             throw ValidationException::withMessages([
+                Fortify::username() => [__('The account is locked due to multiple failed login attempts. Please contact the administrator.')],
+            ]);
+        }
+
         $globalSetting = GlobalSetting::first();
         $authUser = User::withoutGlobalScope(ActiveScope::class)
             ->where('email', $request->email)
@@ -102,7 +113,22 @@ class AttemptToAuthenticate
             $request->only(Fortify::username(), 'password'),
             $request->filled('remember'))
         ) {
+            if ($userAuth) {
+                $userAuth->login_attempts = 0;
+                $userAuth->save();
+            }
             return $next($request);
+        }
+
+        if ($userAuth && !$isAdmin) {
+            $userAuth->increment('login_attempts');
+            if ($userAuth->login_attempts >= 3) {
+                $userAuth->is_locked = true;
+                $userAuth->save();
+                throw ValidationException::withMessages([
+                    Fortify::username() => [__('The account is locked due to multiple failed login attempts. Please contact the administrator.')],
+                ]);
+            }
         }
 
         $this->throwFailedAuthenticationException($request);

@@ -39,7 +39,7 @@ class UpdateClientRequest extends CoreRequest
             'name'  => 'required',
             'website' => 'nullable|url',
             'country' => 'required_with:mobile',
-            'password' => 'nullable|min:8',
+            'password' => 'nullable|alpha_num|min:8',
             'mobile' => 'nullable|numeric'
         ];
 

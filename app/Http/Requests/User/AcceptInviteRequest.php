@@ -31,7 +31,7 @@ class AcceptInviteRequest extends FormRequest
 
         $rules = [
             'name' => 'required',
-            'password' => 'required|min:8'
+            'password' => 'required|alpha_num|min:8'
         ];
 
         if (request()->has('email_address')) {

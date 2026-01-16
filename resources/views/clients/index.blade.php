@@ -364,6 +364,90 @@
             }
         });
 
+        $('body').on('click', '.unlock-user', function() {
+            const id = $(this).data('user-id');
+            Swal.fire({
+                title: "@lang('messages.sweetAlertTitle')",
+                text: "Do you want to unlock this user?",
+                icon: 'warning',
+                showCancelButton: true,
+                focusConfirm: false,
+                confirmButtonText: "Yes, Unlock",
+                cancelButtonText: "@lang('app.cancel')",
+                customClass: {
+                    confirmButton: 'btn btn-primary mr-3',
+                    cancelButton: 'btn btn-secondary'
+                },
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var url = "{{ route('clients.unlock', ':id') }}";
+                    url = url.replace(':id', id);
+
+                    var token = "{{ csrf_token() }}";
+
+                    $.easyAjax({
+                        type: 'POST',
+                        url: url,
+                        data: {
+                            '_token': token
+                        },
+                        success: function(response) {
+                            if (response.status == "success") {
+                                showTable();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        $('body').on('click', '.reset-password', function() {
+            const id = $(this).data('user-id');
+            Swal.fire({
+                title: "@lang('messages.sweetAlertTitle')",
+                text: "Do you want to reset password for this user?",
+                icon: 'warning',
+                showCancelButton: true,
+                focusConfirm: false,
+                confirmButtonText: "Yes, Reset",
+                cancelButtonText: "@lang('app.cancel')",
+                customClass: {
+                    confirmButton: 'btn btn-primary mr-3',
+                    cancelButton: 'btn btn-secondary'
+                },
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var url = "{{ route('clients.reset_password', ':id') }}";
+                    url = url.replace(':id', id);
+
+                    var token = "{{ csrf_token() }}";
+
+                    $.easyAjax({
+                        type: 'POST',
+                        url: url,
+                        data: {
+                            '_token': token
+                        },
+                        success: function(response) {
+                            if (response.status == "success") {
+                                showTable();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
         $('body').on('click', '.verify-user', function() {
             const id = $(this).data('user-id');
             Swal.fire({
