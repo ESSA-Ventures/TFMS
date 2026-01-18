@@ -42,7 +42,7 @@ class UsersTableSeeder extends Seeder
             $user->gender = 'male';
             $user->save();
 
-            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
             $user->user_auth_id = $userAuth->id;
             $user->saveQuietly();
 
@@ -56,7 +56,7 @@ class UsersTableSeeder extends Seeder
             $user->gender = 'male';
             $user->save();
 
-            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
             $user->user_auth_id = $userAuth->id;
             $user->saveQuietly();
 
@@ -73,7 +73,7 @@ class UsersTableSeeder extends Seeder
             $user->gender = 'male';
             $user->save();
 
-            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
             $user->user_auth_id = $userAuth->id;
             $user->saveQuietly();
 
@@ -87,7 +87,7 @@ class UsersTableSeeder extends Seeder
             $user->gender = 'male';
             $user->save();
 
-            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+            $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
             $user->user_auth_id = $userAuth->id;
             $user->saveQuietly();
 
@@ -103,7 +103,7 @@ class UsersTableSeeder extends Seeder
 
         $user->save();
 
-        $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+        $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
         $user->user_auth_id = $userAuth->id;
         $user->saveQuietly();
 
@@ -116,7 +116,7 @@ class UsersTableSeeder extends Seeder
                 $user->company_id = $companyId;
                 $user->save();
 
-                $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+                $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
                 $user->user_auth_id = $userAuth->id;
                 $user->saveQuietly();
 
@@ -129,7 +129,7 @@ class UsersTableSeeder extends Seeder
                 $user->company_id = $companyId;
                 $user->save();
 
-                $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('TempPass123')]);
+                $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('pass1234')]);
                 $user->user_auth_id = $userAuth->id;
                 $user->saveQuietly();
 

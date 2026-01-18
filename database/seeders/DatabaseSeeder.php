@@ -71,6 +71,8 @@ class DatabaseSeeder extends Seeder
                 $this->call(ShiftSeeder::class, false, ['companyId' => $company->id]);
                 $this->call(AttendanceTableSeeder::class, false, ['companyId' => $company->id]);
                 $this->call(AppreciationSeeder::class, false, ['companyId' => $company->id]);
+                $this->call(TFMSRoleSeeder::class, false, ['companyId' => $company->id]);
+                $this->call(TFMSUserSeeder::class, false, ['companyId' => $company->id]);
 
                 $this->call(EmployeePermissionSeeder::class, false, ['companyId' => $company->id]);
             }
