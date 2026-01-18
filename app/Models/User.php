@@ -922,7 +922,7 @@ class User extends BaseModel
      */
     public function permission($permission)
     {
-        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+        if (in_array('admin-tfms', user_roles())) {
             $allowedPermissions = [
                 'view_employees', 'add_employees', 'edit_employees', 'delete_employees', 'change_employee_role',
                 'view_tasks', 'add_tasks', 'edit_tasks', 'delete_tasks', 'change_status', 'view_unassigned_tasks',
@@ -938,6 +938,31 @@ class User extends BaseModel
 
             if (in_array($permission, $allowedPermissions)) {
                 return 'all';
+            }
+        }
+
+        if (in_array('psm-tfms', user_roles())) {
+            $readOnlyPermissions = [
+                'view_employees', 'view_tasks', 'view_department', 'view_designation',
+                'view_attendance', 'view_leave', 'view_holiday', 'view_shift_roster',
+                'view_appreciation', 'view_documents', 'view_immigration',
+                'view_employee_projects', 'view_employee_tasks', 'view_tickets'
+            ];
+
+            if (in_array($permission, $readOnlyPermissions)) {
+                return 'all';
+            }
+        }
+
+        if (in_array('lecturer-tfms', user_roles())) {
+            if ($permission == 'view_tasks') {
+                return 'owned';
+            }
+
+            $nonePermissions = ['add_tasks', 'edit_tasks', 'delete_tasks', 'change_status'];
+
+            if (in_array($permission, $nonePermissions)) {
+                return 'none';
             }
         }
 

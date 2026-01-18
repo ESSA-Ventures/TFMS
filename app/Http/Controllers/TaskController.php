@@ -173,11 +173,22 @@ class TaskController extends AccountBaseController
 
         $admins = User::allAdminTfms($task->company_id);
         $assignees = $task->users;
+        $creator = User::find($task->added_by);
         
-        $notifyUsers = $assignees->merge($admins)->unique('id');
+        // Notify assignees about new task
+        if ($assignees->count() > 0) {
+            event(new \App\Events\TaskEvent($task, $assignees, 'NewTask'));
+        }
 
-        if ($notifyUsers->count() > 0) {
-            event(new \App\Events\TaskEvent($task, $notifyUsers, 'NewTask'));
+        // Notify admins and creator about approval
+        $approvalNotifyUsers = $admins;
+        if ($creator && !$assignees->contains('id', $creator->id)) {
+            $approvalNotifyUsers->push($creator);
+        }
+        $approvalNotifyUsers = $approvalNotifyUsers->unique('id');
+
+        if ($approvalNotifyUsers->count() > 0) {
+            event(new \App\Events\TaskEvent($task, $approvalNotifyUsers, 'TaskApproved'));
         }
 
         return Reply::success('Task approved successfully');
@@ -191,8 +202,13 @@ class TaskController extends AccountBaseController
 
         $admins = User::allAdminTfms($task->company_id);
         $psms = User::allPsm($task->company_id);
+        $creator = User::find($task->added_by);
         
-        $notifyUsers = $admins->merge($psms)->unique('id');
+        $notifyUsers = $admins->merge($psms);
+        if ($creator) {
+            $notifyUsers->push($creator);
+        }
+        $notifyUsers = $notifyUsers->unique('id');
 
         if ($notifyUsers->count() > 0) {
             event(new \App\Events\TaskEvent($task, $notifyUsers, 'TaskRejected'));
@@ -391,7 +407,7 @@ class TaskController extends AccountBaseController
         }
 
         $task->weightage = $request->weightage;
-        $task->approval_status = in_array('psm-tfms', user_roles()) ? 'approved' : 'pending';
+        $task->approval_status = (in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles())) ? 'approved' : 'pending';
         $memberCount = count($request->user_id ?? []);
         $task->final_weightage = $memberCount > 0 ? ($request->weightage / $memberCount) : 0;
 
@@ -409,6 +425,13 @@ class TaskController extends AccountBaseController
         }
 
         $task->save();
+
+        if ($task->approval_status == 'pending') {
+            $psms = User::allPsm($task->company_id);
+            if ($psms->count() > 0) {
+                event(new \App\Events\TaskEvent($task, $psms, 'TaskApprovalNeeded'));
+            }
+        }
 
         $task->task_short_code = ($project) ? $project->project_short_code . '-' . ((int)$projectLastTaskCount + 1) : null;
         $task->saveQuietly();

@@ -35,11 +35,24 @@ class TasksDataTable extends BaseDataTable
         $this->viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
         $this->hasTimelogModule = (in_array('timelogs', user_modules()));
 
-        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+        if (in_array('admin-tfms', user_roles())) {
             $this->editTaskPermission = 'all';
             $this->deleteTaskPermission = 'all';
             $this->viewTaskPermission = 'all';
             $this->viewUnassignedTasksPermission = 'all';
+        }
+
+        if (in_array('psm-tfms', user_roles())) {
+            $this->viewTaskPermission = 'all';
+            $this->viewUnassignedTasksPermission = 'all';
+        }
+
+        if (in_array('lecturer-tfms', user_roles())) {
+            $this->viewTaskPermission = 'owned';
+            $this->editTaskPermission = 'none';
+            $this->deleteTaskPermission = 'none';
+            $this->viewUnassignedTasksPermission = 'none';
+            $this->changeStatusPermission = 'none';
         }
     }
 

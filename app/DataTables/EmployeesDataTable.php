@@ -32,10 +32,14 @@ class EmployeesDataTable extends BaseDataTable
         $this->viewEmployeePermission = user()->permission('view_employees');
         $this->changeEmployeeRolePermission = user()->permission('change_employee_role');
 
-        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+        if (in_array('admin-tfms', user_roles())) {
             $this->viewEmployeePermission = 'all';
             $this->editEmployeePermission = 'all';
             $this->deleteEmployeePermission = 'all';
+        }
+
+        if (in_array('psm-tfms', user_roles())) {
+            $this->viewEmployeePermission = 'all';
         }
     }
 
@@ -81,7 +85,7 @@ class EmployeesDataTable extends BaseDataTable
                 return $uRole . ' <i data-toggle="tooltip" data-original-title="' . __('messages.roleCannotChange') . '" class="fa fa-info-circle"></i>';
             }
 
-            if ($row->id == user()->id) {
+            if ($row->id == user()->id || $this->editEmployeePermission != 'all') {
                 return $uRole . ' <i data-toggle="tooltip" data-original-title="' . __('messages.roleCannotChange') . '" class="fa fa-info-circle"></i>';
             }
 
