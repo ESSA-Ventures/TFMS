@@ -187,9 +187,11 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::requestPasswordResetLinkView(function () {
             $globalSetting = GlobalSetting::first();
-            App::setLocale($globalSetting->locale);
-            Carbon::setLocale($globalSetting->locale);
-            setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            if ($globalSetting) {
+                App::setLocale($globalSetting->locale);
+                Carbon::setLocale($globalSetting->locale);
+                setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            }
             $frontWidgets = FrontWidget::all();
 
             return view('auth.passwords.forget', [
@@ -221,9 +223,11 @@ class FortifyServiceProvider extends ServiceProvider
                 }
             }
 
-            App::setLocale($globalSetting->locale);
-            Carbon::setLocale($globalSetting->locale);
-            setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            if ($globalSetting) {
+                App::setLocale($globalSetting->locale);
+                Carbon::setLocale($globalSetting->locale);
+                setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            }
 
             $userTotal = User::count();
 
@@ -288,9 +292,11 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::resetPasswordView(function ($request) {
             $globalSetting = GlobalSetting::first();
-            App::setLocale($globalSetting->locale);
-            Carbon::setLocale($globalSetting->locale);
-            setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            if ($globalSetting) {
+                App::setLocale($globalSetting->locale);
+                Carbon::setLocale($globalSetting->locale);
+                setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            }
             $frontWidgets = FrontWidget::all();
             return view('auth.passwords.reset-password', [
                 'request' => $request,
@@ -301,18 +307,22 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::confirmPasswordView(function ($request) {
             $globalSetting = GlobalSetting::first();
-            App::setLocale($globalSetting->locale);
-            Carbon::setLocale($globalSetting->locale);
-            setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            if ($globalSetting) {
+                App::setLocale($globalSetting->locale);
+                Carbon::setLocale($globalSetting->locale);
+                setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            }
 
             return view('auth.password-confirm', ['request' => $request, 'globalSetting' => $globalSetting]);
         });
 
         Fortify::twoFactorChallengeView(function () {
             $globalSetting = GlobalSetting::first();
-            App::setLocale($globalSetting->locale);
-            Carbon::setLocale($globalSetting->locale);
-            setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            if ($globalSetting) {
+                App::setLocale($globalSetting->locale);
+                Carbon::setLocale($globalSetting->locale);
+                setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            }
             $frontWidgets = FrontWidget::all();
 
             return view('auth.two-factor-challenge', [
@@ -331,9 +341,11 @@ class FortifyServiceProvider extends ServiceProvider
                 return redirect(route('login'));
             }
 
-            App::setLocale($globalSetting->locale);
-            Carbon::setLocale($globalSetting->locale);
-            setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            if ($globalSetting) {
+                App::setLocale($globalSetting->locale);
+                Carbon::setLocale($globalSetting->locale);
+                setlocale(LC_TIME, $globalSetting->locale . '_' . mb_strtoupper($globalSetting->locale));
+            }
             $frontWidgets = FrontWidget::all();
 
             return view('auth.register', [
