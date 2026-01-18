@@ -708,6 +708,17 @@ class User extends BaseModel
         return $users->get();
     }
 
+    public static function allLecturers($companyId = null)
+    {
+        $users = User::withRole('lecturer-tfms');
+
+        if (!is_null($companyId)) {
+            return $users->where('users.company_id', $companyId)->get();
+        }
+
+        return $users->get();
+    }
+
     public static function departmentUsers($teamId)
     {
         $users = User::join('employee_details', 'employee_details.user_id', '=', 'users.id')

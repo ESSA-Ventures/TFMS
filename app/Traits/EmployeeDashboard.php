@@ -494,6 +494,56 @@ trait EmployeeDashboard
                 ->first();
         }
 
+        if (in_array('lecturer-tfms', user_roles()) || in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles())) {
+            $totalTaskForceWeightage = Task::where('approval_status', 'approved')
+                ->sum('weightage');
+
+            $lecturers = User::allLecturers(company()->id);
+            $workloads = [];
+
+            foreach ($lecturers as $lecturer) {
+                $userTaskWeightage = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
+                    ->where('task_users.user_id', $lecturer->id)
+                    ->where('tasks.approval_status', 'approved')
+                    ->sum('tasks.final_weightage');
+
+                $percentage = ($totalTaskForceWeightage > 0) ? ($userTaskWeightage / $totalTaskForceWeightage) * 100 : 0;
+
+                if ($percentage > 50) {
+                    $status = 'Overload';
+                    $color = 'text-danger';
+                    $bg = 'bg-danger';
+                } elseif ($percentage >= 10) {
+                    $status = 'Balanced';
+                    $color = 'text-warning';
+                    $bg = 'bg-warning';
+                } else {
+                    $status = 'Underload';
+                    $color = 'text-success';
+                    $bg = 'bg-success';
+                }
+
+                $workloadData = (object)[
+                    'id' => $lecturer->id,
+                    'name' => $lecturer->name,
+                    'workload' => $userTaskWeightage,
+                    'percentage' => $percentage,
+                    'status' => $status,
+                    'color' => $color,
+                    'bg' => $bg
+                ];
+
+                $workloads[] = $workloadData;
+
+                if ($lecturer->id == user()->id) {
+                    $this->myWorkload = $workloadData;
+                }
+            }
+
+            $this->workloads = $workloads;
+            $this->totalTaskForceWeightage = $totalTaskForceWeightage;
+        }
+
         return view('dashboard.employee.index', $this->data);
     }
 
