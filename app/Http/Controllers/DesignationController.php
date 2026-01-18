@@ -30,6 +30,11 @@ class DesignationController extends AccountBaseController
     public function index(DesignationDataTable $dataTable)
     {
         $viewPermission = user()->permission('view_designation');
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $viewPermission = 'all';
+        }
+
         abort_403(!in_array($viewPermission, ['all']));
 
         // get all designations

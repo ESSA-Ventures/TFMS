@@ -19,6 +19,11 @@ class DepartmentDataTable extends BaseDataTable
         parent::__construct();
         $this->editDepartmentPermission = user()->permission('edit_department');
         $this->deleteDepartmentPermission = user()->permission('delete_department');
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $this->editDepartmentPermission = 'all';
+            $this->deleteDepartmentPermission = 'all';
+        }
     }
 
     /**

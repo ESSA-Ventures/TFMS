@@ -35,8 +35,8 @@ $addDesignationPermission = user()->permission('add_designation');
                                     fieldName="date_of_birth" :fieldPlaceholder="__('placeholders.date')" />
                             </div>
                             <div class="col-lg-4 col-md-6">
-                                <x-forms.label class="my-3" fieldId="category_id"
-                                    :fieldLabel="__('app.designation')" fieldRequired="true">
+                                <x-forms.label class="my-3" fieldId="designation"
+                                    :fieldLabel="__('app.designation')" fieldRequired="false">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <select class="form-control select-picker" name="designation"
@@ -49,8 +49,8 @@ $addDesignationPermission = user()->permission('add_designation');
                                 </x-forms.input-group>
                             </div>
                             <div class="col-lg-4 col-md-6">
-                                <x-forms.label class="my-3" fieldId="category_id"
-                                    :fieldLabel="__('app.department')" fieldRequired="true">
+                                <x-forms.label class="my-3" fieldId="department"
+                                    :fieldLabel="__('app.department')" fieldRequired="false">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <select class="form-control select-picker" name="department"

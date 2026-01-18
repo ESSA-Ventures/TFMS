@@ -686,6 +686,39 @@ class User extends BaseModel
         return $users->get();
     }
 
+    public static function allPsm($companyId = null)
+    {
+        $users = User::withRole('psm-tfms');
+
+        if (!is_null($companyId)) {
+            return $users->where('users.company_id', $companyId)->get();
+        }
+
+        return $users->get();
+    }
+
+    public static function allAdminTfms($companyId = null)
+    {
+        $users = User::withRole('admin-tfms');
+
+        if (!is_null($companyId)) {
+            return $users->where('users.company_id', $companyId)->get();
+        }
+
+        return $users->get();
+    }
+
+    public static function allLecturers($companyId = null)
+    {
+        $users = User::withRole('lecturer-tfms');
+
+        if (!is_null($companyId)) {
+            return $users->where('users.company_id', $companyId)->get();
+        }
+
+        return $users->get();
+    }
+
     public static function departmentUsers($teamId)
     {
         $users = User::join('employee_details', 'employee_details.user_id', '=', 'users.id')
@@ -900,6 +933,57 @@ class User extends BaseModel
      */
     public function permission($permission)
     {
+        if (in_array('admin-tfms', user_roles())) {
+            $allowedPermissions = [
+                'view_employees', 'add_employees', 'edit_employees', 'delete_employees', 'change_employee_role',
+                'view_tasks', 'add_tasks', 'edit_tasks', 'delete_tasks', 'change_status', 'view_unassigned_tasks',
+                'view_department', 'add_department', 'edit_department', 'delete_department',
+                'view_designation', 'add_designation', 'edit_designation', 'delete_designation',
+                'view_attendance', 'add_attendance', 'edit_attendance', 'delete_attendance',
+                'view_leave', 'add_leave', 'edit_leave', 'delete_leave',
+                'view_holiday', 'add_holiday', 'edit_holiday', 'delete_holiday',
+                'view_shift_roster', 'add_shift_roster', 'edit_shift_roster', 'delete_shift_roster',
+                'view_appreciation', 'add_appreciation', 'edit_appreciation', 'delete_appreciation',
+                'view_documents', 'view_immigration', 'view_employee_projects', 'view_employee_tasks', 'view_tickets'
+            ];
+
+            if (in_array($permission, $allowedPermissions)) {
+                return 'all';
+            }
+        }
+
+        if (in_array('psm-tfms', user_roles())) {
+            $readOnlyPermissions = [
+                'view_employees', 'view_tasks', 'view_department', 'view_designation',
+                'view_attendance', 'view_leave', 'view_holiday', 'view_shift_roster',
+                'view_appreciation', 'view_documents', 'view_immigration',
+                'view_employee_projects', 'view_employee_tasks', 'view_tickets'
+            ];
+
+            if (in_array($permission, $readOnlyPermissions)) {
+                return 'all';
+            }
+
+            $deniedPermissions = ['add_tasks', 'edit_tasks', 'delete_tasks', 'change_status'];
+            if (in_array($permission, $deniedPermissions)) {
+                return 'none';
+            }
+        }
+
+        if (in_array('lecturer-tfms', user_roles())) {
+            if ($permission == 'view_tasks') {
+                return 'owned';
+            }
+
+            if ($permission == 'change_status') {
+                return 'all';
+            }
+
+            if (in_array($permission, ['add_tasks', 'edit_tasks', 'delete_tasks'])) {
+                return 'none';
+            }
+        }
+
         return Cache::rememberForever('permission-' . $permission . '-' . $this->id, function () use ($permission) {
             $permissionType = UserPermission::join('permissions', 'user_permissions.permission_id', '=', 'permissions.id')
                 ->join('permission_types', 'user_permissions.permission_type_id', '=', 'permission_types.id')

@@ -79,6 +79,10 @@ class TaskBoardController extends AccountBaseController
                 $q->leftJoin('task_labels', 'task_labels.task_id', '=', 'tasks.id')
                     ->leftJoin('users as creator_user', 'creator_user.id', '=', 'tasks.created_by');
 
+                if (in_array('lecturer-tfms', user_roles())) {
+                    $q->where('tasks.approval_status', 'approved');
+                }
+
                 if (!in_array('admin', user_roles())) {
                     $q->where(
                         function ($q) {
@@ -200,8 +204,13 @@ class TaskBoardController extends AccountBaseController
                     }
 
                     $q->leftJoin('task_labels', 'task_labels.task_id', '=', 'tasks.id')
-                        ->leftJoin('users as creator_user', 'creator_user.id', '=', 'tasks.created_by')
-                        ->groupBy('tasks.id');
+                        ->leftJoin('users as creator_user', 'creator_user.id', '=', 'tasks.created_by');
+
+                    if (in_array('lecturer-tfms', user_roles())) {
+                        $q->where('tasks.approval_status', 'approved');
+                    }
+
+                    $q->groupBy('tasks.id');
 
                     if (!in_array('admin', user_roles())) {
                         $q->where(

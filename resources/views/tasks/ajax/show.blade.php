@@ -34,6 +34,17 @@ $viewProjectPermission = user()->permission('view_projects');
                                 @endif
                             @endif
 
+                            @if ($task->approval_status == 'pending' && in_array('psm-tfms', user_roles()))
+                                <x-forms.button-primary icon="check" id="approve-task"
+                                    class="mr-2 mb-2 mb-lg-0 mb-md-0">
+                                    Accept
+                                </x-forms.button-primary>
+                                <x-forms.button-secondary icon="times" id="reject-task"
+                                    class="mr-3">
+                                    Reject
+                                </x-forms.button-secondary>
+                            @endif
+
                             @if ($task->boardColumn->slug != 'completed' && !is_null($task->is_task_user) && in_array('timelogs', user_modules()))
                                 @if (is_null($task->userActiveTimer))
                                     <x-forms.button-secondary id="start-task-timer" icon="play">
@@ -105,6 +116,19 @@ $viewProjectPermission = user()->permission('view_projects');
                 </div>
 
                 <div class="card-body">
+                    <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
+                        <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">Approval Status</p>
+                        <p class="mb-0 text-dark-grey f-14 w-70">
+                            @if ($task->approval_status == 'approved')
+                                <i class="fa fa-circle mr-1 text-success f-10"></i> Active
+                            @elseif ($task->approval_status == 'rejected')
+                                <i class="fa fa-circle mr-1 text-danger f-10"></i> Reject
+                            @else
+                                <i class="fa fa-circle mr-1 text-warning f-10"></i> Pending
+                            @endif
+                        </p>
+                    </div>
+
                     @if (($taskSettings->project == 'yes' && in_array('client', user_roles())) || in_array('admin', user_roles()) || in_array('employee', user_roles()))
                         <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
                             <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">@lang('app.project')</p>
@@ -185,6 +209,20 @@ $viewProjectPermission = user()->permission('view_projects');
                         <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">@lang('modules.taskShortCode')</p>
                         <p class="mb-0 text-dark-grey f-14 w-70">
                            {{ ($task->task_short_code) ? $task->task_short_code : '--' }}
+                        </p>
+                    </div>
+
+                    <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
+                        <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">@lang('modules.tasks.weightage')</p>
+                        <p class="mb-0 text-dark-grey f-14 w-70">
+                           {{ $task->weightage ?? '--' }}
+                        </p>
+                    </div>
+
+                    <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
+                        <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">@lang('modules.tasks.finalWeightage')</p>
+                        <p class="mb-0 text-dark-grey f-14 w-70">
+                           {{ $task->final_weightage ?? '--' }}
                         </p>
                     </div>
 
@@ -1005,6 +1043,47 @@ $viewProjectPermission = user()->permission('view_projects');
                     success: function(response) {
                         if (response.status == "success") {
                         $("#emoji-"+commentId).html(response.view);
+                    }
+                }
+            });
+
+            $('body').on('click', '#approve-task', function() {
+                var id = "{{ $task->id }}";
+                var token = "{{ csrf_token() }}";
+                var url = "{{ route('tasks.approve_task', [$task->id]) }}";
+
+                $.easyAjax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        '_token': token
+                    },
+                    success: function(response) {
+                        if (response.status == "success") {
+                            window.location.reload();
+                        }
+                    }
+                });
+            });
+
+            $('body').on('click', '#reject-task', function() {
+                var id = "{{ $task->id }}";
+                var token = "{{ csrf_token() }}";
+                var url = "{{ route('tasks.reject_task', [$task->id]) }}";
+
+                $.easyAjax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        '_token': token
+                    },
+                    success: function(response) {
+                        if (response.status == "success") {
+                            window.location.reload();
+                        }
+                    }
+                });
+            });
                         }
 
                     }

@@ -20,20 +20,19 @@ class DepartmentTableSeeder extends Seeder
     {
 
         $departments = [
-            ['team_name' => 'Marketing', 'company_id' => $companyId],
-            ['team_name' => 'Sales', 'company_id' => $companyId],
-            ['team_name' => 'Human Resources', 'company_id' => $companyId],
-            ['team_name' => 'Public Relations', 'company_id' => $companyId],
-            ['team_name' => 'Research', 'company_id' => $companyId],
-            ['team_name' => 'Finance', 'company_id' => $companyId],
+            ['team_name' => 'Faculty of Computing', 'company_id' => $companyId],
+            ['team_name' => 'Faculty of Engineering', 'company_id' => $companyId],
+            ['team_name' => 'Faculty of Science', 'company_id' => $companyId],
+            ['team_name' => 'Faculty of Management', 'company_id' => $companyId],
+            ['team_name' => 'Centre for Academic Studies', 'company_id' => $companyId],
         ];
 
         $designations = [
-            ['name' => 'Trainee', 'company_id' => $companyId],
-            ['name' => 'Senior', 'company_id' => $companyId],
-            ['name' => 'Junior', 'company_id' => $companyId],
-            ['name' => 'Team Lead', 'company_id' => $companyId],
-            ['name' => 'Project Manager', 'company_id' => $companyId],
+            ['name' => 'Professor', 'company_id' => $companyId],
+            ['name' => 'Associate Professor', 'company_id' => $companyId],
+            ['name' => 'Senior Lecturer', 'company_id' => $companyId],
+            ['name' => 'Lecturer', 'company_id' => $companyId],
+            ['name' => 'Tutor', 'company_id' => $companyId],
         ];
 
         Team::insert($departments);

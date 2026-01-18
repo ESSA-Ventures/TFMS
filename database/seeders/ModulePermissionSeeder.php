@@ -49,7 +49,7 @@ class ModulePermissionSeeder extends Seeder
 
     private function permissionTypes()
     {
-        \DB::table('permission_types')->insert([
+        DB::table('permission_types')->insert([
             ['name' => 'added'],
             ['name' => 'owned'],
             ['name' => 'both'],

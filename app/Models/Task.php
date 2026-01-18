@@ -35,6 +35,8 @@ use Illuminate\Notifications\Notifiable;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $milestone_id
+ * @property int $weightage
+ * @property float $final_weightage
  * @property int $is_private
  * @property int $billable
  * @property int $estimate_hours

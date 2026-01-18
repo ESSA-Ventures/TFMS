@@ -43,6 +43,8 @@ trait EmployeeDashboard
      */
     public function employeeDashboard()
     {
+        $this->taskYears = collect();
+        $this->selectedYear = now()->year;
 
         $completedTaskColumn = TaskboardColumn::completeColumn();
         $showClockIn = AttendanceSetting::first();
@@ -109,7 +111,7 @@ trait EmployeeDashboard
 
         $this->checkJoiningDate = true;
 
-        if (is_null(user()->employeeDetail->joining_date) || user()->employeeDetail->joining_date->gt($currentDate)) {
+        if (is_null(user()->employeeDetail) || is_null(user()->employeeDetail->joining_date) || user()->employeeDetail->joining_date->gt($currentDate)) {
             $this->checkJoiningDate = false;
         }
 
@@ -224,14 +226,47 @@ trait EmployeeDashboard
             })->where('status', 'open')->count();
         }
 
-        $tasks = $this->pendingTasks = Task::with('activeProject', 'boardColumn', 'labels')
+        $tasks = Task::with('activeProject', 'boardColumn', 'labels')
             ->join('task_users', 'task_users.task_id', '=', 'tasks.id')
             ->where('task_users.user_id', $this->user->id)
-            ->where('tasks.board_column_id', '<>', $completedTaskColumn->id)
-            ->select('tasks.*')
+            ->where('tasks.board_column_id', '<>', $completedTaskColumn->id);
+
+        if (in_array('lecturer-tfms', user_roles())) {
+            $tasks->where('tasks.approval_status', 'approved');
+
+            // Categorize by year for lecturer-tfms
+            $allMyTasks = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
+                ->where('task_users.user_id', $this->user->id)
+                ->where('tasks.board_column_id', '<>', $completedTaskColumn->id)
+                ->where('tasks.approval_status', 'approved')
+                ->select('start_date', 'due_date')
+                ->get();
+
+            $years = collect();
+            foreach ($allMyTasks as $task) {
+                if ($task->start_date) {
+                    $years->push($task->start_date->year);
+                }
+                if ($task->due_date) {
+                    $years->push($task->due_date->year);
+                }
+            }
+
+            $this->taskYears = $years->unique()->sortDesc()->values();
+            $this->selectedYear = request('year') ?: ($this->taskYears->first() ?: now()->year);
+
+            $tasks->where(function($query) {
+                $query->whereYear('tasks.start_date', $this->selectedYear)
+                    ->orWhereYear('tasks.due_date', $this->selectedYear);
+            });
+        }
+
+        $this->pendingTasks = $tasks->select('tasks.*')
             ->groupBy('tasks.id')
             ->orderBy('tasks.id', 'desc')
             ->get();
+
+        $tasks = $this->pendingTasks;
 
         $this->inProcessTasks = $tasks->count();
 
@@ -487,7 +522,81 @@ trait EmployeeDashboard
                 ->first();
         }
 
+        if (in_array('lecturer-tfms', user_roles()) || in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles())) {
+            $completeColumn = TaskboardColumn::completeColumn();
+
+            $totalTaskForceWeightageQuery = Task::where('tasks.board_column_id', '!=', $completeColumn->id)
+                ->where('tasks.approval_status', 'approved');
+
+            if (in_array('lecturer-tfms', user_roles())) {
+                $totalTaskForceWeightageQuery->where(function($query) {
+                    $query->whereYear('tasks.start_date', $this->selectedYear)
+                        ->orWhereYear('tasks.due_date', $this->selectedYear);
+                });
+            }
+
+            $totalTaskForceWeightage = $totalTaskForceWeightageQuery->sum('tasks.final_weightage');
+
+            $lecturers = User::allLecturers(company()->id);
+            $workloads = [];
+
+            foreach ($lecturers as $lecturer) {
+                $workloadData = $this->calculateWorkload($lecturer, $totalTaskForceWeightage, in_array('lecturer-tfms', user_roles()) ? $this->selectedYear : null);
+                if ($lecturer->id == user()->id) {
+                    $this->myWorkload = $workloadData;
+                }
+            }
+
+            $this->workloads = $workloads;
+            $this->totalTaskForceWeightage = $totalTaskForceWeightage;
+        }
+
         return view('dashboard.employee.index', $this->data);
+    }
+
+    public function calculateWorkload($user, $totalSystemWeightage = 0, $year = null)
+    {
+        $completeColumn = TaskboardColumn::completeColumn();
+
+        $userTaskWeightage = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
+            ->where('task_users.user_id', $user->id)
+            ->where('tasks.board_column_id', '!=', $completeColumn->id)
+            ->where('tasks.approval_status', 'approved');
+
+        if ($year) {
+            $userTaskWeightage->where(function($query) use ($year) {
+                $query->whereYear('tasks.start_date', $year)
+                    ->orWhereYear('tasks.due_date', $year);
+            });
+        }
+
+        $userTaskWeightage = $userTaskWeightage->sum('tasks.final_weightage');
+
+        $percentage = ($totalSystemWeightage > 0) ? ($userTaskWeightage / $totalSystemWeightage) * 100 : 0;
+
+        if ($percentage > 50) {
+            $status = 'Overload';
+            $color = 'text-danger';
+            $bg = 'bg-danger';
+        } elseif ($percentage >= 10) {
+            $status = 'Balanced';
+            $color = 'text-warning';
+            $bg = 'bg-warning';
+        } else {
+            $status = 'Underload';
+            $color = 'text-success';
+            $bg = 'bg-success';
+        }
+
+        return (object)[
+            'id' => $user->id,
+            'name' => $user->name,
+            'workload' => $userTaskWeightage,
+            'percentage' => $percentage,
+            'status' => $status,
+            'color' => $color,
+            'bg' => $bg
+        ];
     }
 
     public function clockInModal()

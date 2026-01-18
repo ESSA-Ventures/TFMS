@@ -245,6 +245,78 @@
                             </div>
                         </div>
                         <!-- EMP DASHBOARD INFO END -->
+
+                        @if (in_array('lecturer-tfms', user_roles()))
+                        <!-- INDIVIDUAL WORKLOAD SECTION START -->
+                        @if(isset($myWorkload))
+                        <div class="col-md-12">
+                            <div class="card border-0 b-shadow-4 mb-3">
+                                <div class="card-body">
+                                    <h4 class="card-title f-14 f-w-500 text-dark-grey mb-3">Your Workload Status</h4>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <p class="mb-0 f-12 text-lightest">Workload Points</p>
+                                            <p class="mb-0 f-18 f-w-500 text-dark">{{ number_format($myWorkload->workload, 1) }} <span class="f-12 font-weight-normal text-lightest">/ {{ number_format($totalTaskForceWeightage, 1) }}</span></p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="mb-0 f-12 text-lightest">Status</p>
+                                            <p class="mb-0 f-16 f-w-500 {{ $myWorkload->color }}">{{ $myWorkload->status }} ({{ number_format($myWorkload->percentage, 1) }}%)</p>
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar {{ $myWorkload->bg }}" role="progressbar" style="width: {{ $myWorkload->percentage }}%" aria-valuenow="{{ $myWorkload->percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        <!-- INDIVIDUAL WORKLOAD SECTION END -->
+                        @endif
+
+                        @if (in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles()))
+                        <!-- ALL USER WORKLOAD SECTION START -->
+                        <div class="col-md-12">
+                            <div class="card border-0 b-shadow-4 mb-3">
+                                <div class="card-body">
+                                    <h4 class="card-title f-14 f-w-500 text-dark-grey mb-3">User Workload Status (All)</h4>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table f-13 text-dark-grey">
+                                            <thead>
+                                                <tr class="text-lightest">
+                                                    <th>User</th>
+                                                    <th>Workload Points</th>
+                                                    <th>Percentage</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($workloads as $wl)
+                                                    <tr>
+                                                        <td class="f-w-500">{{ $wl->name }}</td>
+                                                        <td>{{ number_format($wl->workload, 1) }}</td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="progress flex-grow-1 mr-2" style="height: 6px;">
+                                                                    <div class="progress-bar {{ $wl->bg }}" role="progressbar" style="width: {{ $wl->percentage }}%" aria-valuenow="{{ $wl->percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                </div>
+                                                                <span class="f-12">{{ number_format($wl->percentage, 1) }}%</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-pill {{ $wl->bg }}">{{ $wl->status }}</span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p class="f-11 text-lightest mt-2">Total Task Force Points: {{ number_format($totalTaskForceWeightage, 1) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ALL USER WORKLOAD SECTION END -->
+                        @endif
                         @endif
 
                         @if (!is_null($myActiveTimer) && in_array('tasks', user_modules()))
@@ -313,6 +385,7 @@
                             </div>
                         @endif
 
+                        @if(!in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles()) && !in_array('lecturer-tfms', user_roles()))
                             @include('dashboard.employee.widgets.shift_schedule')
 
                             @include('dashboard.employee.widgets.birthday')
@@ -332,6 +405,7 @@
                             @include('dashboard.employee.widgets.internship')
 
                             @include('dashboard.employee.widgets.contract')
+                        @endif
                     </div>
                 </div>
             @endif
@@ -367,15 +441,20 @@
                         </div>
                     @endif
 
-                    @include('dashboard.employee.widgets.projects')
-                    @include('dashboard.employee.widgets.lead')
+                    @if(!in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles()) && !in_array('lecturer-tfms', user_roles()))
+                        @include('dashboard.employee.widgets.projects')
+                        @include('dashboard.employee.widgets.lead')
+                    @endif
                     @include('dashboard.employee.widgets.week_timelog')
                 </div>
                 <!-- EMP DASHBOARD TASKS PROJECTS END -->
                 @include('dashboard.employee.widgets.my_tasks')
-                @include('dashboard.employee.widgets.tickets')
-                @include('dashboard.employee.widgets.my_calendar')
-                @include('dashboard.employee.widgets.notices')
+
+                @if(!in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles()) && !in_array('lecturer-tfms', user_roles()))
+                    @include('dashboard.employee.widgets.tickets')
+                    @include('dashboard.employee.widgets.my_calendar')
+                    @include('dashboard.employee.widgets.notices')
+                @endif
 
             </div>
             <!-- EMP DASHBOARD TASKS PROJECTS EVENTS END -->
@@ -662,6 +741,13 @@
                     $('#weekly-timelogs').html(response.html)
                 }
             })
+        });
+
+        $('#year-filter').on('change', function() {
+            var year = $(this).val();
+            var url = "{{ route('dashboard') }}";
+            url = url + '?year=' + year;
+            window.location.href = url;
         });
 
     </script>

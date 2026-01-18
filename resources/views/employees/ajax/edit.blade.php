@@ -40,7 +40,7 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                             </div>
                             <div class="col-md-4">
                                 <x-forms.label class="my-3" fieldId="designation"
-                                    :fieldLabel="__('app.designation')" fieldRequired="true">
+                                    :fieldLabel="__('app.designation')" fieldRequired="false">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <select class="form-control select-picker" name="designation"
@@ -62,7 +62,7 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                             </div>
                             <div class="col-md-4">
                                 <x-forms.label class="my-3" fieldId="department"
-                                    :fieldLabel="__('app.department')" fieldRequired="true">
+                                    :fieldLabel="__('app.department')" fieldRequired="false">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <select class="form-control select-picker" name="department"

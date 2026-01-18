@@ -11,6 +11,9 @@ use App\Notifications\TaskCompleted;
 use App\Notifications\TaskUpdatedClient;
 use App\Notifications\TaskCompletedClient;
 use App\Notifications\TaskMention;
+use App\Notifications\TaskApprovalNeeded;
+use App\Notifications\TaskRejectedNotification;
+use App\Notifications\TaskApprovedNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -47,6 +50,15 @@ class TaskListener
             }
             elseif ($event->notificationName == 'TaskMention') {
                 Notification::send($event->notifyUser, new TaskMention($event->task));
+            }
+            elseif ($event->notificationName == 'TaskApprovalNeeded') {
+                Notification::send($event->notifyUser, new TaskApprovalNeeded($event->task));
+            }
+            elseif ($event->notificationName == 'TaskRejected') {
+                Notification::send($event->notifyUser, new TaskRejectedNotification($event->task));
+            }
+            elseif ($event->notificationName == 'TaskApproved') {
+                Notification::send($event->notifyUser, new TaskApprovedNotification($event->task));
             }
         }
     }

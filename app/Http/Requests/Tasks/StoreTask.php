@@ -51,7 +51,8 @@ class StoreTask extends CoreRequest
         $rules = [
             'heading' => 'required',
             'start_date' => 'required|date_format:"' . $setting->date_format . '"',
-            'priority' => 'required'
+            'priority' => 'required',
+            'weightage' => 'required|integer|min:1|max:10'
         ];
 
         if(in_array('client', user_roles()))
