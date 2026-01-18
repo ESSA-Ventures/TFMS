@@ -225,16 +225,19 @@ class DashboardController extends AccountBaseController
     {
         if (request()->filter) {
             $employee_details = EmployeeDetails::where('user_id', user()->id)->first();
-            $employee_details->calendar_view = (request()->filter != false) ? request()->filter : null;
-            $employee_details->save();
-            session()->forget('user');
+
+            if ($employee_details) {
+                $employee_details->calendar_view = (request()->filter != false) ? request()->filter : null;
+                $employee_details->save();
+                session()->forget('user');
+            }
         }
 
         $startDate = Carbon::parse(request('start'));
         $endDate = Carbon::parse(request('end'));
 
         // get calendar view current logined user
-        $calendar_filter_array = explode(',', user()->employeeDetails->calendar_view);
+        $calendar_filter_array = (user()->employeeDetails && user()->employeeDetails->calendar_view) ? explode(',', user()->employeeDetails->calendar_view) : ['task', 'events', 'holiday', 'tickets', 'leaves'];
 
         $eventData = array();
 

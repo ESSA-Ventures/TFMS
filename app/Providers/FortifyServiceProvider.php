@@ -246,7 +246,7 @@ class FortifyServiceProvider extends ServiceProvider
             $languages = language_setting();
             $frontWidgets = FrontWidget::all();
 
-            if ($globalSetting->front_design == 1 && $globalSetting->login_ui == 1 && !module_enabled('Subdomain')) {
+            if ($globalSetting && $globalSetting->front_design == 1 && $globalSetting->login_ui == 1 && !module_enabled('Subdomain')) {
                 $localeLanguage = LanguageSetting::where('language_code', App::getLocale())->first();
 
                 $frontMenuCount = FrontMenu::select('id', 'language_setting_id')->where('language_setting_id', $localeLanguage?->id)->count();

@@ -190,7 +190,7 @@ trait EmployeeDashboard
                 $this->notices = Notice::latest()
                     ->select('id', 'heading', 'created_at')
                     ->where(['to' => 'employee', 'department_id' => null])
-                    ->orWhere(['department_id' => $this->user->employeeDetails->department_id])
+                    ->orWhere(['department_id' => ($this->user->employeeDetails ? $this->user->employeeDetails->department_id : null)])
                     ->limit(10)
                     ->get();
             }
@@ -200,7 +200,7 @@ trait EmployeeDashboard
                     ->where('added_by', $this->user->id)
                     ->orWhere(function ($q) {
                         $q->where(['to' => 'employee', 'department_id' => null])
-                            ->orWhere(['department_id' => $this->user->employeeDetails->department_id]);
+                            ->orWhere(['department_id' => ($this->user->employeeDetails ? $this->user->employeeDetails->department_id : null)]);
                     })
                     ->limit(10)
                     ->get();
@@ -451,7 +451,7 @@ trait EmployeeDashboard
         $this->currentWeekDates = $currentWeekDates;
         $this->weekShifts = $weekShifts;
         $this->showClockIn = $showClockIn->show_clock_in_button;
-        $this->event_filter = explode(',', user()->employeeDetails->calendar_view);
+        $this->event_filter = (user()->employeeDetails && user()->employeeDetails->calendar_view) ? explode(',', user()->employeeDetails->calendar_view) : ['task', 'events', 'holiday', 'tickets', 'leaves'];
         $this->widgets = DashboardWidget::where('dashboard_type', 'private-dashboard')->where('active', 1)->get();
         $this->activeWidgets = $this->widgets->filter(function ($value, $key) {
             return $value->status == '1';

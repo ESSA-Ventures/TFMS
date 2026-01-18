@@ -5,10 +5,10 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ $globalSetting->favicon_url }}">
-    <link rel="manifest" href="{{ $globalSetting->favicon_url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $globalSetting->favicon_url ?? asset('favicon.png') }}">
+    <link rel="manifest" href="{{ $globalSetting->favicon_url ?? asset('favicon.png') }}">
     <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="{{ $globalSetting->favicon_url }}">
+    <meta name="msapplication-TileImage" content="{{ $globalSetting->favicon_url ?? asset('favicon.png') }}">
     <meta name="theme-color" content="#ffffff">
 
     <!-- Font Awesome Icons -->
@@ -18,7 +18,7 @@
     <link href="{{ asset('vendor/froiden-helper/helper.css') }}" rel="stylesheet">
     <link type="text/css" rel="stylesheet" media="all" href="{{ asset('css/main.css') }}">
 
-    <title>{{ $globalSetting->global_app_name ?? $globalSetting->app_name }}</title>
+    <title>{{ $globalSetting->global_app_name ?? ($globalSetting->app_name ?? 'TFMS') }}</title>
 
 
     @stack('styles')
@@ -26,7 +26,7 @@
 
     <style>
         .login_header {
-            background-color: {{ $globalSetting->logo_background_color }}      !important;
+            background-color: {{ $globalSetting->logo_background_color ?? '#ffffff' }}      !important;
         }
 
     </style>
@@ -35,7 +35,7 @@
         <link href="{{ asset('css/login-custom.css') }}" rel="stylesheet">
     @endif
 
-    @if ($globalSetting->sidebar_logo_style == 'full')
+    @if ($globalSetting && $globalSetting->sidebar_logo_style == 'full')
         <style>
             .login_header img {
                 max-width: unset;
@@ -48,17 +48,17 @@
 
 </head>
 
-<body class="{{ $globalSetting->auth_theme == 'dark' ? 'dark-theme' : '' }}">
+<body class="{{ ($globalSetting->auth_theme ?? 'light') == 'dark' ? 'dark-theme' : '' }}">
 
 <header class="sticky-top d-flex justify-content-center align-items-center login_header bg-white px-4">
-    <img class="mr-2 rounded" src="{{ $globalSetting->logo_url }}" alt="Logo"/>
-    @if ($globalSetting->sidebar_logo_style != 'full')
-        <h3 class="mb-0 pl-1 {{ $globalSetting->auth_theme_text == 'light' ? ($globalSetting->auth_theme == 'dark' ? 'text-dark' : 'text-white') : '' }}">{{ $globalSetting->global_app_name ?? $globalSetting->app_name }}</h3>
+    <img class="mr-2 rounded" src="{{ $globalSetting->logo_url ?? asset('img/logo.png') }}" alt="Logo"/>
+    @if (($globalSetting->sidebar_logo_style ?? 'none') != 'full')
+        <h3 class="mb-0 pl-1 {{ ($globalSetting->auth_theme_text ?? 'dark') == 'light' ? (($globalSetting->auth_theme ?? 'light') == 'dark' ? 'text-dark' : 'text-white') : '' }}">{{ $globalSetting->global_app_name ?? ($globalSetting->app_name ?? 'TFMS') }}</h3>
     @endif
 </header>
 
 
-<section class="bg-grey py-5 login_section"  @if ($globalSetting->login_background_url) style="background: url('{{ $globalSetting->login_background_url }}') center center/cover no-repeat;" @endif>
+<section class="bg-grey py-5 login_section"  @if ($globalSetting && $globalSetting->login_background_url) style="background: url('{{ $globalSetting->login_background_url }}') center center/cover no-repeat;" @endif>
     <div class="container">
         <div class="row">
             <div class="col-md-12 text-center">

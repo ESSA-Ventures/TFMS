@@ -199,9 +199,9 @@
                                         <div class="card-body border-0 pl-0">
                                             <h4 class="card-title text-dark f-18 f-w-500 mb-0">{{ mb_ucfirst($user->name) }}</h4>
                                             <p class="f-14 font-weight-normal text-dark-grey mb-2">
-                                                {{ $user->employeeDetails->designation->name ?? '--' }}</p>
+                                                {{ $user->employeeDetails ? ($user->employeeDetails->designation->name ?? '--') : '--' }}</p>
                                             <p class="card-text f-12 text-lightest"> @lang('app.employeeId') :
-                                                {{ mb_strtoupper($user->employeeDetails->employee_id) }}</p>
+                                                {{ $user->employeeDetails ? mb_strtoupper($user->employeeDetails->employee_id) : '--' }}</p>
                                         </div>
                                     </div>
                                 </a>

@@ -73,7 +73,7 @@
                         class="btn-primary f-w-500 rounded w-100 height-50 f-18 ">@lang('auth.next') <i
                         class="fa fa-arrow-right pl-1"></i></button>
 
-            @if ($company->allow_client_signup)
+            @if ($company && $company->allow_client_signup)
                 <a href="{{ route('register') }}" id="signup-client-next"
                    class="btn-secondary f-w-500 rounded w-100 height-50 f-15 mt-3">
                     @lang('app.signUpAsClient')
@@ -81,7 +81,7 @@
             @endif
 
             @if (isWorksuiteSaas() && !module_enabled('Subdomain'))
-                @if ($globalSetting->enable_register == true)
+                @if ($globalSetting && $globalSetting->enable_register == true)
                     <a href="{{ route('front.signup.index') }}" id="signup-customer"
                        class="btn-secondary f-w-500 rounded w-100 height-50 f-15 mt-3">
                         @lang('app.signUp')
