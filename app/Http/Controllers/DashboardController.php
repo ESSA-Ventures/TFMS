@@ -85,6 +85,8 @@ class DashboardController extends AccountBaseController
         if (in_array('client', $roles)) {
             return $this->clientPanelDashboard();
         }
+
+        return $this->employeeDashboard();
     }
 
     public function widget(Request $request, $dashboardType)

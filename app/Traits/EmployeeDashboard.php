@@ -47,15 +47,22 @@ trait EmployeeDashboard
         $this->selectedYear = now()->year;
 
         $completedTaskColumn = TaskboardColumn::completeColumn();
+        $completedTaskColumnId = $completedTaskColumn ? $completedTaskColumn->id : 0;
         $showClockIn = AttendanceSetting::first();
 
         $this->attendanceSettings = $this->attendanceShift($showClockIn);
 
-        $startTimestamp = now()->format('Y-m-d') . ' ' . $this->attendanceSettings->office_start_time;
+        if (!$this->attendanceSettings) {
+            return view('dashboard.employee.index', $this->data);
+        }
 
-        $endTimestamp = now()->format('Y-m-d') . ' ' . $this->attendanceSettings->office_end_time;
-        $officeStartTime = Carbon::createFromFormat('Y-m-d H:i:s', $startTimestamp, $this->company->timezone);
-        $officeEndTime = Carbon::createFromFormat('Y-m-d H:i:s', $endTimestamp, $this->company->timezone);
+        $startTimestamp = now()->format('Y-m-d') . ' ' . ($this->attendanceSettings->office_start_time ?? '09:00:00');
+
+        $timezone = (company() && company()->timezone) ? company()->timezone : (global_setting()->timezone ?? 'UTC');
+
+        $endTimestamp = now()->format('Y-m-d') . ' ' . ($this->attendanceSettings->office_end_time ?? '18:00:00');
+        $officeStartTime = Carbon::createFromFormat('Y-m-d H:i:s', $startTimestamp, $timezone);
+        $officeEndTime = Carbon::createFromFormat('Y-m-d H:i:s', $endTimestamp, $timezone);
 
         $officeStartTime = $officeStartTime->setTimezone('UTC');
         $officeEndTime = $officeEndTime->setTimezone('UTC');
@@ -168,7 +175,7 @@ trait EmployeeDashboard
 
         $this->counts = User::select(
             DB::raw('(select IFNULL(sum(project_time_logs.total_minutes),0) from `project_time_logs` where user_id = ' . $this->user->id . ') as totalHoursLogged '),
-            DB::raw('(select count(tasks.id) from `tasks` inner join task_users on task_users.task_id=tasks.id where tasks.board_column_id=' . $completedTaskColumn->id . ' and task_users.user_id = ' . $this->user->id . ') as totalCompletedTasks')
+            DB::raw('(select count(tasks.id) from `tasks` inner join task_users on task_users.task_id=tasks.id where tasks.board_column_id=' . $completedTaskColumnId . ' and task_users.user_id = ' . $this->user->id . ') as totalCompletedTasks')
         )
             ->first();
 
@@ -229,7 +236,7 @@ trait EmployeeDashboard
         $tasks = Task::with('activeProject', 'boardColumn', 'labels')
             ->join('task_users', 'task_users.task_id', '=', 'tasks.id')
             ->where('task_users.user_id', $this->user->id)
-            ->where('tasks.board_column_id', '<>', $completedTaskColumn->id);
+            ->where('tasks.board_column_id', '<>', $completedTaskColumnId);
 
         if (in_array('lecturer-tfms', user_roles())) {
             $tasks->where('tasks.approval_status', 'approved');
@@ -237,7 +244,7 @@ trait EmployeeDashboard
             // Categorize by year for lecturer-tfms
             $allMyTasks = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
                 ->where('task_users.user_id', $this->user->id)
-                ->where('tasks.board_column_id', '<>', $completedTaskColumn->id)
+                ->where('tasks.board_column_id', '<>', $completedTaskColumnId)
                 ->where('tasks.approval_status', 'approved')
                 ->select('start_date', 'due_date')
                 ->get();
@@ -524,8 +531,9 @@ trait EmployeeDashboard
 
         if (in_array('lecturer-tfms', user_roles()) || in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles())) {
             $completeColumn = TaskboardColumn::completeColumn();
+            $completeColumnId = $completeColumn ? $completeColumn->id : 0;
 
-            $totalTaskForceWeightageQuery = Task::where('tasks.board_column_id', '!=', $completeColumn->id)
+            $totalTaskForceWeightageQuery = Task::where('tasks.board_column_id', '!=', $completeColumnId)
                 ->where('tasks.approval_status', 'approved');
 
             if (in_array('lecturer-tfms', user_roles())) {
@@ -537,7 +545,8 @@ trait EmployeeDashboard
 
             $totalTaskForceWeightage = $totalTaskForceWeightageQuery->sum('tasks.final_weightage');
 
-            $lecturers = User::allLecturers(company()->id);
+            $companyId = company() ? company()->id : null;
+            $lecturers = User::allLecturers($companyId);
             $workloads = [];
 
             foreach ($lecturers as $lecturer) {
@@ -557,10 +566,11 @@ trait EmployeeDashboard
     public function calculateWorkload($user, $totalSystemWeightage = 0, $year = null)
     {
         $completeColumn = TaskboardColumn::completeColumn();
+        $completeColumnId = $completeColumn ? $completeColumn->id : 0;
 
         $userTaskWeightage = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
             ->where('task_users.user_id', $user->id)
-            ->where('tasks.board_column_id', '!=', $completeColumn->id)
+            ->where('tasks.board_column_id', '!=', $completeColumnId)
             ->where('tasks.approval_status', 'approved');
 
         if ($year) {
@@ -860,15 +870,21 @@ trait EmployeeDashboard
 
     public function attendanceShift($defaultAttendanceSettings)
     {
+        $timezone = (company() && company()->timezone) ? company()->timezone : (global_setting()->timezone ?? 'UTC');
+
         $checkPreviousDayShift = EmployeeShiftSchedule::with('shift')->where('user_id', user()->id)
-            ->where('date', now(company()->timezone)->subDay()->toDateString())
+            ->where('date', now($timezone)->subDay()->toDateString())
             ->first();
 
         $checkTodayShift = EmployeeShiftSchedule::with('shift')->where('user_id', user()->id)
-            ->where('date', now(company()->timezone)->toDateString())
+            ->where('date', now($timezone)->toDateString())
             ->first();
 
-        $backDayFromDefault = Carbon::parse(now(company()->timezone)->subDay()->format('Y-m-d') . ' ' . $defaultAttendanceSettings->office_start_time);
+        if (!$defaultAttendanceSettings) {
+             return $checkTodayShift;
+        }
+
+        $backDayFromDefault = Carbon::parse(now($timezone)->subDay()->format('Y-m-d') . ' ' . $defaultAttendanceSettings->office_start_time);
 
         $backDayToDefault = Carbon::parse(now(company()->timezone)->subDay()->format('Y-m-d') . ' ' . $defaultAttendanceSettings->office_end_time);
 
