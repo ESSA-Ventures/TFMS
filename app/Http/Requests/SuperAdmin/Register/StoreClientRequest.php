@@ -32,7 +32,7 @@ class StoreClientRequest extends FormRequest
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email:rfc|unique:users,email,null,id,company_id,' . $company->id,
-            'password' => 'required|min:8',
+            'password' => 'required|alpha_num|min:8',
         ];
 
         if ($global && $global->sign_up_terms == 'yes') {

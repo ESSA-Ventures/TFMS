@@ -44,6 +44,11 @@ class FortifyServiceProvider extends ServiceProvider
 
     use AppBoot;
 
+    public function isLegal()
+    {
+        return true;
+    }
+
     /**
      * Register any application services.
      *
@@ -57,6 +62,15 @@ class FortifyServiceProvider extends ServiceProvider
 
             public function toResponse($request)
             {
+                $userAuth = auth()->user();
+                $user = $userAuth->user;
+
+                if ($userAuth && $userAuth->is_first_login) {
+                     if (!$user->is_superadmin && !$user->hasRole('admin')) {
+                         return redirect()->route('first-login.index');
+                     }
+                }
+
                 session(['user' => User::find(user()->id)]);
 
                 if (auth()->user() && auth()->user()->user->is_superadmin) {
@@ -137,12 +151,36 @@ class FortifyServiceProvider extends ServiceProvider
 
             $userAuth = UserAuth::where('email', $request->email)->first();
 
-            if ($userAuth && Hash::check($request->password, $userAuth->password)) {
+            if ($userAuth) {
+                $isAdmin = DB::table('role_user')
+                    ->join('users', 'users.id', '=', 'role_user.user_id')
+                    ->where('users.user_auth_id', $userAuth->id)
+                    ->where('role_user.role_id', 1)
+                    ->exists();
 
-                // Added for validation of account login in company
-                UserAuth::validateLoginActiveDisabled($userAuth);
+                if (!$isAdmin && $userAuth->is_locked) {
+                    throw ValidationException::withMessages([
+                        Fortify::username() => __('Your account has been locked due to multiple failed login attempts. Please contact the administrator.'),
+                    ]);
+                }
 
-                return $userAuth;
+                if (Hash::check($request->password, $userAuth->password)) {
+                    $userAuth->login_attempts = 0;
+                    $userAuth->save();
+
+                    // Added for validation of account login in company
+                    UserAuth::validateLoginActiveDisabled($userAuth);
+
+                    return $userAuth;
+                } else {
+                    if (!$isAdmin && preg_match('/^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9]{8,16}$/', $request->password)) {
+                        $userAuth->login_attempts = $userAuth->login_attempts + 1;
+                        if ($userAuth->login_attempts >= 3) {
+                            $userAuth->is_locked = true;
+                        }
+                        $userAuth->save();
+                    }
+                }
             }
         });
 

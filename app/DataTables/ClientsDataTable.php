@@ -61,6 +61,22 @@ class ClientsDataTable extends BaseDataTable
                 $action .= '<a href="javascript:;" class="dropdown-item verify-user" data-user-id="' . $row->id . '"><i class="fa fa-check mr-2"></i>' . __('app.approve') . '</a>';
             }
 
+            if ($row->is_locked) {
+                if ($this->editClientPermission == 'all' || in_array('admin', user_roles())) {
+                    $action .= '<a class="dropdown-item unlock-user" href="javascript:;" data-user-id="' . $row->id . '">
+                                <i class="fa fa-unlock mr-2"></i>
+                                ' . __('app.unlock') . '
+                            </a>';
+                }
+            } else {
+                 if ($this->editClientPermission == 'all' || in_array('admin', user_roles())) {
+                    $action .= '<a class="dropdown-item reset-password" href="javascript:;" data-user-id="' . $row->id . '">
+                                <i class="fa fa-refresh mr-2"></i>
+                                ' . __('app.resetPassword') . '
+                            </a>';
+                }
+            }
+
             if ($this->editClientPermission == 'all' || ($this->editClientPermission == 'added' && user()->id == $row->added_by) || ($this->editClientPermission == 'both' && user()->id == $row->added_by)) {
                 $action .= '<a class="dropdown-item openRightModal" href="' . route('clients.edit', [$row->id]) . '">
                                 <i class="fa fa-edit mr-2"></i>
@@ -106,6 +122,10 @@ class ClientsDataTable extends BaseDataTable
         $datatables->editColumn(
             'status',
             function ($row) {
+                if ($row->is_locked) {
+                    return '<i class="fa fa-circle mr-1 text-red f-10"></i>' . __('app.locked');
+                }
+                
                 if ($row->status == 'active') {
                     return ' <i class="fa fa-circle mr-1 text-light-green f-10"></i>' . __('app.active');
                 }
@@ -139,7 +159,8 @@ class ClientsDataTable extends BaseDataTable
             ->join('role_user', 'role_user.user_id', '=', 'users.id')
             ->leftJoin('client_details', 'users.id', '=', 'client_details.user_id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
-            ->select('users.id', 'users.name', 'client_details.company_name', 'users.email', 'users.mobile', 'users.image', 'users.created_at', 'users.status', 'client_details.added_by', 'users.admin_approval')
+            ->join('user_auths', 'user_auths.id', '=', 'users.user_auth_id')
+            ->select('users.id', 'users.name', 'client_details.company_name', 'users.email', 'users.mobile', 'users.image', 'users.created_at', 'users.status', 'client_details.added_by', 'users.admin_approval', 'user_auths.is_locked')
             ->where('roles.name', 'client');
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {

@@ -52,6 +52,25 @@
 
             $('#submit-login').click(function () {
 
+                // Password Validation
+                const pass = $('#password').val();
+                const regex = /^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9]{8,16}$/;
+                if (!regex.test(pass)) {
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'Password must be alphanumeric (contain both letters and numbers) and between 8 to 16 characters.',
+                        showConfirmButton: true,
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                        showClass: {
+                            popup: 'swal2-noanimation',
+                            backdrop: 'swal2-noanimation'
+                        },
+                    });
+                    return;
+                }
+
                 var url = "{{ route('password.update') }}";
                 $.easyAjax({
                     url: url,

@@ -27,7 +27,7 @@ class UpdateProfile extends CoreRequest
         $setting = companyOrGlobalSetting();
         $rules = [
             'name' => 'required|max:50',
-            'password' => 'nullable|min:8|max:50',
+            'password' => 'nullable|alpha_num|min:8|max:50',
             'image' => 'image|max:2048',
             'mobile' => 'nullable|numeric',
             'date_of_birth' => 'nullable|date_format:"' . $setting->date_format . '"|before_or_equal:'.now($setting->timezone)->format($setting->date_format),

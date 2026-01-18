@@ -27,7 +27,7 @@ class StoreUser extends CoreRequest
         return [
             'name' => 'required:max:50',
             'email' => 'required|email:rfc|unique:users,email,null,id,company_id,' . company()->id,
-            'password' => 'required|min:6',
+            'password' => 'required|alpha_num|min:6',
             'slack_username' => 'nullable|unique:employee_details,slack_username,null,id,company_id,' . company()->id,
             'hourly_rate' => 'nullable|numeric',
             'joining_date' => 'required'

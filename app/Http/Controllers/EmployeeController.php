@@ -1069,4 +1069,41 @@ class EmployeeController extends AccountBaseController
         $this->userRole = $userRole;
     }
 
+    public function unlock($id)
+    {
+        $viewPermission = user()->permission('edit_employees');
+        abort_403($viewPermission != 'all' && !in_array('admin', user_roles()));
+
+        $user = User::withoutGlobalScope(ActiveScope::class)->withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        
+        $userAuth = UserAuth::find($user->user_auth_id);
+        if ($userAuth) {
+            $userAuth->is_locked = false;
+            $userAuth->login_attempts = 0;
+            $userAuth->save();
+        }
+        
+        return Reply::success(__('User unlocked successfully.'));
+    }
+
+    public function resetPassword($id)
+    {
+        $viewPermission = user()->permission('edit_employees');
+        abort_403($viewPermission != 'all' && !in_array('admin', user_roles()));
+
+        $user = User::withoutGlobalScope(ActiveScope::class)->withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        
+        $userAuth = UserAuth::find($user->user_auth_id);
+        if ($userAuth) {
+            $password = \Illuminate\Support\Str::random(8); // Temporary password
+            $userAuth->password = \Illuminate\Support\Facades\Hash::make($password);
+            $userAuth->is_first_login = true; 
+            $userAuth->save();
+            
+            $user->notify(new \App\Notifications\NewUser($user, $password));
+        }
+        
+        return Reply::success(__('Password reset successfully. Email sent to user.'));
+    }
+
 }

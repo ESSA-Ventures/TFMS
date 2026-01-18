@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'laravel/laravel',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => '3b7881f7cebb73dfe9c985ff70538c55c43aabab',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '453505567491534f79d36e086d53ab9b3d3b95c2',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -1030,9 +1030,9 @@
             'dev_requirement' => false,
         ),
         'laravel/laravel' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => '3b7881f7cebb73dfe9c985ff70538c55c43aabab',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '453505567491534f79d36e086d53ab9b3d3b95c2',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1867,8 +1867,8 @@
         'psr/http-client-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0',
-                1 => '*',
+                0 => '*',
+                1 => '1.0',
             ),
         ),
         'psr/http-factory' => array(
@@ -1883,10 +1883,10 @@
         'psr/http-factory-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0',
-                1 => '^1.0',
-                2 => '^1.1 || ^2.0',
-                3 => '*',
+                0 => '*',
+                1 => '1.0',
+                2 => '^1.0',
+                3 => '^1.1 || ^2.0',
             ),
         ),
         'psr/http-message' => array(
@@ -1901,9 +1901,9 @@
         'psr/http-message-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0',
-                1 => '^1.1 || ^2.0',
-                2 => '*',
+                0 => '*',
+                1 => '1.0',
+                2 => '^1.1 || ^2.0',
             ),
         ),
         'psr/log' => array(
@@ -1918,8 +1918,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '3.0.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -2182,7 +2182,7 @@
             'version' => '3.5.0.0',
             'reference' => 'cd91b752f07c4bab9fb3b173f81af68a78a78d6d',
             'type' => 'metapackage',
-            'install_path' => NULL,
+            'install_path' => null,
             'aliases' => array(),
             'dev_requirement' => false,
         ),

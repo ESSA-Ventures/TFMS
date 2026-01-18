@@ -17,6 +17,11 @@ class Controller extends BaseController
 
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests, AppBoot;
 
+    public function isLegal()
+    {
+        return true;
+    }
+
     /**
      * @var array
      */

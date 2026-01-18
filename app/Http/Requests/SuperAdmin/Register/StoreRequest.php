@@ -63,10 +63,10 @@ class StoreRequest extends CoreRequest
         ];
 
         if (request()->has('password_confirmation')) {
-            $rules['password'] = 'required|confirmed|min:8';
+            $rules['password'] = 'required|alpha_num|confirmed|min:8';
 
         } else {
-            $rules['password'] = 'required|min:8';
+            $rules['password'] = 'required|alpha_num|min:8';
         }
 
         $global = global_setting();
