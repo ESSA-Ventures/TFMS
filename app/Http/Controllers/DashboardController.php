@@ -43,6 +43,18 @@ class DashboardController extends AccountBaseController
             // WORKSUITESAAS
             abort_403(user()->is_superadmin);
 
+            $roles = user_roles();
+
+            if (in_array('admin-tfms', $roles)) {
+                $this->pageTitle = 'Admin Dashboard';
+            }
+            elseif (in_array('psm-tfms', $roles)) {
+                $this->pageTitle = 'Executive Dashboard';
+            }
+            elseif (in_array('lecturer-tfms', $roles)) {
+                $this->pageTitle = 'Lecturer Dashboard';
+            }
+
             $this->viewOverviewDashboard = user()->permission('view_overview_dashboard');
             $this->viewProjectDashboard = user()->permission('view_project_dashboard');
             $this->viewClientDashboard = user()->permission('view_client_dashboard');
@@ -60,12 +72,13 @@ class DashboardController extends AccountBaseController
      */
     public function index()
     {
+        $roles = user_roles();
 
-        if (in_array('employee', user_roles())) {
+        if (in_array('employee', $roles) || in_array('admin-tfms', $roles) || in_array('psm-tfms', $roles) || in_array('lecturer-tfms', $roles)) {
             return $this->employeeDashboard();
         }
 
-        if (in_array('client', user_roles())) {
+        if (in_array('client', $roles)) {
             return $this->clientPanelDashboard();
         }
     }

@@ -144,6 +144,20 @@
                             </x-forms.input-group>
                         </div>
                     </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <x-forms.number :fieldLabel="__('modules.tasks.weightage')" fieldName="weightage"
+                                        fieldId="weightage" fieldRequired="true"
+                                        :fieldPlaceholder="__('placeholders.sampleText')"
+                                        fieldValue="1" minValue="1" maxValue="10"/>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <x-forms.text :fieldLabel="__('modules.tasks.finalWeightage')" fieldName="final_weightage"
+                                      fieldId="final_weightage" :fieldPlaceholder="__('placeholders.sampleText')"
+                                      fieldValue="1" fieldReadOnly="true"/>
+                    </div>
+
                     <div class="col-md-6 show-leave"></div>
 
                     <div class="col-md-12">
@@ -907,6 +921,19 @@
                     }
                 }
             });
+        });
+
+        $('#weightage, #selectAssignee').on('change keyup', function () {
+            var weightage = $('#weightage').val();
+            var members = $('#selectAssignee').val();
+            var memberCount = members ? members.length : 0;
+            var finalWeightage = 0;
+
+            if (memberCount > 0 && weightage > 0) {
+                finalWeightage = weightage / memberCount;
+            }
+
+            $('#final_weightage').val(finalWeightage.toFixed(2));
         });
 
         init(RIGHT_MODAL);

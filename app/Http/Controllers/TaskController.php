@@ -24,6 +24,7 @@ use App\Models\ProjectTimeLog;
 use App\Models\TaskboardColumn;
 use App\Traits\ProjectProgress;
 use App\Models\ProjectMilestone;
+use App\Events\TaskEvent;
 use App\Events\TaskReminderEvent;
 use App\DataTables\TasksDataTable;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,10 @@ class TaskController extends AccountBaseController
     public function index(TasksDataTable $dataTable)
     {
         $viewPermission = user()->permission('view_tasks');
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $viewPermission = 'all';
+        }
 
         abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
 
@@ -158,6 +163,42 @@ class TaskController extends AccountBaseController
 
         return Reply::successWithData(__('messages.updateSuccess'), ['clockHtml' => $clockHtml]);
 
+    }
+
+    public function approveTask($id)
+    {
+        $task = Task::findOrFail($id);
+        $task->approval_status = 'approved';
+        $task->save();
+
+        $admins = User::allAdminTfms($task->company_id);
+        $assignees = $task->users;
+        
+        $notifyUsers = $assignees->merge($admins)->unique('id');
+
+        if ($notifyUsers->count() > 0) {
+            event(new \App\Events\TaskEvent($task, $notifyUsers, 'NewTask'));
+        }
+
+        return Reply::success('Task approved successfully');
+    }
+
+    public function rejectTask($id)
+    {
+        $task = Task::findOrFail($id);
+        $task->approval_status = 'rejected';
+        $task->save();
+
+        $admins = User::allAdminTfms($task->company_id);
+        $psms = User::allPsm($task->company_id);
+        
+        $notifyUsers = $admins->merge($psms)->unique('id');
+
+        if ($notifyUsers->count() > 0) {
+            event(new \App\Events\TaskEvent($task, $notifyUsers, 'TaskRejected'));
+        }
+
+        return Reply::success('Task rejected successfully');
     }
 
     public function destroy(Request $request, $id)
@@ -348,6 +389,11 @@ class TaskController extends AccountBaseController
         if ($request->milestone_id != '') {
             $task->milestone_id = $request->milestone_id;
         }
+
+        $task->weightage = $request->weightage;
+        $task->approval_status = in_array('psm-tfms', user_roles()) ? 'approved' : 'pending';
+        $memberCount = count($request->user_id ?? []);
+        $task->final_weightage = $memberCount > 0 ? ($request->weightage / $memberCount) : 0;
 
         // Add repeated task
         $task->repeat = $request->repeat ? 1 : 0;
@@ -671,6 +717,10 @@ class TaskController extends AccountBaseController
         }
 
         $task->milestone_id = $request->milestone_id;
+
+        $task->weightage = $request->weightage;
+        $memberCount = count($request->user_id ?? []);
+        $task->final_weightage = $memberCount > 0 ? ($request->weightage / $memberCount) : 0;
 
         if ($request->has('dependent') && $request->has('dependent_task_id') && $request->dependent_task_id != '') {
             $dependentTask = Task::findOrFail($request->dependent_task_id);

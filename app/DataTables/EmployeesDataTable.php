@@ -31,6 +31,12 @@ class EmployeesDataTable extends BaseDataTable
         $this->deleteEmployeePermission = user()->permission('delete_employees');
         $this->viewEmployeePermission = user()->permission('view_employees');
         $this->changeEmployeeRolePermission = user()->permission('change_employee_role');
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $this->viewEmployeePermission = 'all';
+            $this->editEmployeePermission = 'all';
+            $this->deleteEmployeePermission = 'all';
+        }
     }
 
     /**
@@ -71,7 +77,7 @@ class EmployeesDataTable extends BaseDataTable
                 $uRole = $row->current_role_name;
             }
 
-            if (in_array('admin', $userRole) && !in_array('admin', user_roles())) {
+            if (in_array('admin', $userRole) && !in_array('admin', user_roles()) && !in_array('admin-tfms', user_roles())) {
                 return $uRole . ' <i data-toggle="tooltip" data-original-title="' . __('messages.roleCannotChange') . '" class="fa fa-info-circle"></i>';
             }
 
@@ -84,7 +90,7 @@ class EmployeesDataTable extends BaseDataTable
             foreach ($roles as $item) {
                 if (
                     $item->name != 'admin'
-                    || ($item->name == 'admin' && in_array('admin', user_roles()))
+                    || ($item->name == 'admin' && (in_array('admin', user_roles()) || in_array('admin-tfms', user_roles())))
                 ) {
 
                     $role .= '<option ';

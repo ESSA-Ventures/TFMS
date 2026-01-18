@@ -313,6 +313,7 @@
                             </div>
                         @endif
 
+                        @if(!in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles()) && !in_array('lecturer-tfms', user_roles()))
                             @include('dashboard.employee.widgets.shift_schedule')
 
                             @include('dashboard.employee.widgets.birthday')
@@ -332,6 +333,7 @@
                             @include('dashboard.employee.widgets.internship')
 
                             @include('dashboard.employee.widgets.contract')
+                        @endif
                     </div>
                 </div>
             @endif
@@ -367,15 +369,20 @@
                         </div>
                     @endif
 
-                    @include('dashboard.employee.widgets.projects')
-                    @include('dashboard.employee.widgets.lead')
+                    @if(!in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles()) && !in_array('lecturer-tfms', user_roles()))
+                        @include('dashboard.employee.widgets.projects')
+                        @include('dashboard.employee.widgets.lead')
+                    @endif
                     @include('dashboard.employee.widgets.week_timelog')
                 </div>
                 <!-- EMP DASHBOARD TASKS PROJECTS END -->
                 @include('dashboard.employee.widgets.my_tasks')
-                @include('dashboard.employee.widgets.tickets')
-                @include('dashboard.employee.widgets.my_calendar')
-                @include('dashboard.employee.widgets.notices')
+
+                @if(!in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles()) && !in_array('lecturer-tfms', user_roles()))
+                    @include('dashboard.employee.widgets.tickets')
+                    @include('dashboard.employee.widgets.my_calendar')
+                    @include('dashboard.employee.widgets.notices')
+                @endif
 
             </div>
             <!-- EMP DASHBOARD TASKS PROJECTS EVENTS END -->

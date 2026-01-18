@@ -375,6 +375,11 @@ if (!function_exists('user_modules')) {
             $moduleArray[] = array_values($item)[0];
         }
 
+        $roles = user_roles();
+        if (in_array('admin-tfms', $roles) || in_array('psm-tfms', $roles) || in_array('lecturer-tfms', $roles)) {
+            $moduleArray = array_unique(array_merge($moduleArray, ['employees', 'projects', 'tasks']));
+        }
+
         cache()->put('user_modules_' . $user->id, $moduleArray);
         return $moduleArray;
     }

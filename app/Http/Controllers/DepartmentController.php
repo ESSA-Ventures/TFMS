@@ -36,6 +36,11 @@ class DepartmentController extends AccountBaseController
     public function index(DepartmentDataTable $dataTable)
     {
         $viewPermission = user()->permission('view_department');
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $viewPermission = 'all';
+        }
+
         abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
 
         $this->departments = Team::with('childs')->get();

@@ -23,6 +23,11 @@ class DesignationDataTable extends BaseDataTable
         parent::__construct();
         $this->editDesignationPermission = user()->permission('edit_designation');
         $this->deleteDesignationPermission = user()->permission('delete_designation');
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $this->editDesignationPermission = 'all';
+            $this->deleteDesignationPermission = 'all';
+        }
     }
 
     /**

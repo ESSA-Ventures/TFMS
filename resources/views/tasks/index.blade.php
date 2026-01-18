@@ -210,6 +210,21 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                 </div>
             </div>
 
+            <div class="more-filter-items">
+                <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">Approval Status</label>
+                <div class="select-filter mb-4">
+                    <div class="select-others">
+                        <select class="form-control select-picker" id="approval_status" data-live-search="true"
+                            data-container="body" data-size="8">
+                            <option value="all" {{ (request('approval_status') == 'all' || request('approval_status') == '') ? 'selected' : '' }}>@lang('app.all')</option>
+                            <option value="pending" {{ request('approval_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ request('approval_status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
         </x-filters.more-filter-box>
         <!-- MORE FILTERS END -->
     </x-filters.filter-box>
@@ -321,11 +336,11 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
             var date_filter_on = $('#date_filter_on').val();
             var searchText = $('#search-text-field').val();
             var milestone_id = $('#milestone_id').val();
+            var approval_status = $('#approval_status').val();
 
             data['clientID'] = clientID;
             data['assignedBY'] = assignedBY;
             data['assignedTo'] = assignedTo;
-            data['status'] = status;
             data['status'] = status;
             data['label'] = label;
             data['category_id'] = category_id;
@@ -337,12 +352,13 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
             data['endDate'] = endDate;
             data['searchText'] = searchText;
             data['milestone_id'] = milestone_id;
+            data['approval_status'] = approval_status;
         });
         const showTable = () => {
             window.LaravelDataTables["allTasks-table"].draw(true);
         }
 
-        $('#milestone_id, #billable_task, #status, #clientID, #category_id, #assignedBY, #assignedTo, #label, #project_id_filter, #pinned, #date_filter_on')
+        $('#approval_status, #milestone_id, #billable_task, #status, #clientID, #category_id, #assignedBY, #assignedTo, #label, #project_id_filter, #pinned, #date_filter_on')
             .on('change keyup',
                 function() {
                     if ($('#status').val() != "not finished") {
@@ -370,6 +386,9 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                         $('#reset-filters').removeClass('d-none');
                         showTable();
                     }else if ($('#milestone_id').val() != "all") {
+                        $('#reset-filters').removeClass('d-none');
+                        showTable();
+                    } else if ($('#approval_status').val() != "all") {
                         $('#reset-filters').removeClass('d-none');
                         showTable();
                     } else if ($('#pinned').val() != "all") {
@@ -697,6 +716,47 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                     }
                 }
             })
+        });
+
+
+        $('#allTasks-table').on('click', '.approve-task', function() {
+            var id = $(this).data('task-id');
+            var url = "{{ route('tasks.approve_task', ':id') }}";
+            url = url.replace(':id', id);
+            var token = '{{ csrf_token() }}';
+            
+            $.easyAjax({
+                url: url,
+                type: "POST",
+                data: {
+                    _token: token
+                },
+                success: function(response) {
+                    if (response.status == 'success') {
+                        window.LaravelDataTables["allTasks-table"].draw(false);
+                    }
+                }
+            });
+        });
+
+        $('#allTasks-table').on('click', '.reject-task', function() {
+            var id = $(this).data('task-id');
+            var url = "{{ route('tasks.reject_task', ':id') }}";
+            url = url.replace(':id', id);
+            var token = '{{ csrf_token() }}';
+
+            $.easyAjax({
+                url: url,
+                type: "POST",
+                data: {
+                    _token: token
+                },
+                success: function(response) {
+                    if (response.status == 'success') {
+                        window.LaravelDataTables["allTasks-table"].draw(false);
+                    }
+                }
+            });
         });
 
 

@@ -380,6 +380,8 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('tasks/change-status', [TaskController::class, 'changeStatus'])->name('tasks.change_status');
     Route::post('tasks/apply-quick-action', [TaskController::class, 'applyQuickAction'])->name('tasks.apply_quick_action');
     Route::post('tasks/store-pin', [TaskController::class, 'storePin'])->name('tasks.store_pin');
+    Route::post('tasks/approve-task/{id}', [TaskController::class, 'approveTask'])->name('tasks.approve_task');
+    Route::post('tasks/reject-task/{id}', [TaskController::class, 'rejectTask'])->name('tasks.reject_task');
     Route::post('tasks/reminder', [TaskController::class, 'reminder'])->name('tasks.reminder');
     Route::post('tasks/destroy-pin/{id}', [TaskController::class, 'destroyPin'])->name('tasks.destroy_pin');
     Route::post('tasks/check-task/{taskID}', [TaskController::class, 'checkTask'])->name('tasks.check_task');

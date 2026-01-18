@@ -448,6 +448,8 @@ return array(
         'assignMe' => 'Assign to me',
         'setTimeEstimate' => 'Time estimate',
         'users' => 'Users',
+        'weightage' => 'Weightage',
+        'finalWeightage' => 'Final Weightage',
         'taskInfo' => 'Task Info',
         'loadMore' => 'Load More',
         'taskboardDefaultLength' => 'Taskboard Default Length',

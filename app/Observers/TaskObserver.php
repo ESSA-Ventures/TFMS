@@ -73,6 +73,13 @@ class TaskObserver
     public function created(Task $task)
     {
         if (!isRunningInConsoleOrSeeding()) {
+            if ($task->approval_status == 'pending') {
+                $psmUsers = User::allPsm($task->company_id);
+                if ($psmUsers->count() > 0) {
+                    event(new TaskEvent($task, $psmUsers, 'TaskApprovalNeeded'));
+                }
+            }
+
             $mentionIds = [];
             $mentionDescriptionMembers = null;
             $unmentionIds = null;
@@ -92,42 +99,44 @@ class TaskObserver
                 $unmentionDescriptionMember = User::whereIn('id', $unmentionIds)->get();
             }
 
-            if (request()->has('project_id') && request()->project_id != 'all' && request()->project_id != '') {
-                if ((request()->mention_user_id) != null || request()->mention_user_id != '' || $mentionIds != null && $mentionIds != '') {
+            if ($task->approval_status != 'pending') {
+                if (request()->has('project_id') && request()->project_id != 'all' && request()->project_id != '') {
+                    if ((request()->mention_user_id) != null || request()->mention_user_id != '' || $mentionIds != null && $mentionIds != '') {
+
+                            event(new TaskEvent($task, $mentionDescriptionMembers, 'TaskMention'));
+
+                        if (request()->user_id != null || request()->user_id != '' || request()->has('user_id')) {
+
+                            if ($unmentionIds != null && $unmentionIds != '') {
+
+                                event(new TaskEvent($task, $unmentionDescriptionMember, 'NewTask'));
+
+                            }
+                        }
+
+                    } else {
+
+                        if ($task->project->client_id != null && $task->project->allow_client_notification == 'enable' && $task->project->client->status != 'deactive') {
+                            event(new TaskEvent($task, $task->project->client, 'NewClientTask'));
+                        }
+
+                    }
+
+                } else {
+
+                    if ((request()->mention_user_id) != null || request()->mention_user_id != '') {
 
                         event(new TaskEvent($task, $mentionDescriptionMembers, 'TaskMention'));
 
-                    if (request()->user_id != null || request()->user_id != '' || request()->has('user_id')) {
+                    }
+
+                    if (request()->user_id != null || request()->user_id != '' || (isset(request()->user_id))) {
 
                         if ($unmentionIds != null && $unmentionIds != '') {
 
                             event(new TaskEvent($task, $unmentionDescriptionMember, 'NewTask'));
 
                         }
-                    }
-
-                } else {
-
-                    if ($task->project->client_id != null && $task->project->allow_client_notification == 'enable' && $task->project->client->status != 'deactive') {
-                        event(new TaskEvent($task, $task->project->client, 'NewClientTask'));
-                    }
-
-                }
-
-            } else {
-
-                if ((request()->mention_user_id) != null || request()->mention_user_id != '') {
-
-                    event(new TaskEvent($task, $mentionDescriptionMembers, 'TaskMention'));
-
-                }
-
-                if (request()->user_id != null || request()->user_id != '' || (isset(request()->user_id))) {
-
-                    if ($unmentionIds != null && $unmentionIds != '') {
-
-                        event(new TaskEvent($task, $unmentionDescriptionMember, 'NewTask'));
-
                     }
                 }
             }

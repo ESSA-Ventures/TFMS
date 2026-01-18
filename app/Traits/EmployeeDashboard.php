@@ -109,7 +109,7 @@ trait EmployeeDashboard
 
         $this->checkJoiningDate = true;
 
-        if (is_null(user()->employeeDetail->joining_date) || user()->employeeDetail->joining_date->gt($currentDate)) {
+        if (is_null(user()->employeeDetail) || is_null(user()->employeeDetail->joining_date) || user()->employeeDetail->joining_date->gt($currentDate)) {
             $this->checkJoiningDate = false;
         }
 
@@ -224,14 +224,21 @@ trait EmployeeDashboard
             })->where('status', 'open')->count();
         }
 
-        $tasks = $this->pendingTasks = Task::with('activeProject', 'boardColumn', 'labels')
+        $tasks = Task::with('activeProject', 'boardColumn', 'labels')
             ->join('task_users', 'task_users.task_id', '=', 'tasks.id')
             ->where('task_users.user_id', $this->user->id)
-            ->where('tasks.board_column_id', '<>', $completedTaskColumn->id)
-            ->select('tasks.*')
+            ->where('tasks.board_column_id', '<>', $completedTaskColumn->id);
+
+        if (in_array('lecturer-tfms', user_roles())) {
+            $tasks->where('tasks.approval_status', 'approved');
+        }
+
+        $this->pendingTasks = $tasks->select('tasks.*')
             ->groupBy('tasks.id')
             ->orderBy('tasks.id', 'desc')
             ->get();
+
+        $tasks = $this->pendingTasks;
 
         $this->inProcessTasks = $tasks->count();
 

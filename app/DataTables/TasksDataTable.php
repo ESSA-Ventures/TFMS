@@ -34,6 +34,13 @@ class TasksDataTable extends BaseDataTable
         $this->changeStatusPermission = user()->permission('change_status');
         $this->viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
         $this->hasTimelogModule = (in_array('timelogs', user_modules()));
+
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $this->editTaskPermission = 'all';
+            $this->deleteTaskPermission = 'all';
+            $this->viewTaskPermission = 'all';
+            $this->viewUnassignedTasksPermission = 'all';
+        }
     }
 
     /**
@@ -55,6 +62,14 @@ class TasksDataTable extends BaseDataTable
         $datatables->addColumn(
             'action', function ($row) {
                 $taskUsers = $row->users->pluck('id')->toArray();
+
+                if (request()->approval_status == 'pending') {
+                    $action = '<div class="btn-group" role="group">';
+                    $action .= '<a href="javascript:;" class="btn btn-sm btn-success approve-task mr-1" data-task-id="' . $row->id . '" data-toggle="tooltip" data-original-title="Accept"><i class="fa fa-check"></i> Accept</a>';
+                    $action .= '<a href="javascript:;" class="btn btn-sm btn-danger reject-task" data-task-id="' . $row->id . '" data-toggle="tooltip" data-original-title="Reject"><i class="fa fa-times"></i> Reject</a>';
+                    $action .= '</div>';
+                    return $action;
+                }
 
                 $action = '<div class="task_view">
 
@@ -133,6 +148,30 @@ class TasksDataTable extends BaseDataTable
                 return '<span >' . $row->start_date->translatedFormat($this->company->date_format) . '</span>';
             }
         );
+
+        $datatables->editColumn('weightage', function ($row) {
+            return $row->weightage ?: '--';
+        });
+
+        $datatables->editColumn('final_weightage', function ($row) {
+            return $row->final_weightage ?: '--';
+        });
+
+        $datatables->editColumn('approval_status', function ($row) {
+            $status = $row->approval_status;
+            $class = 'text-warning';
+            $text = 'Pending';
+
+            if ($status == 'approved') {
+                $class = 'text-success';
+                $text = 'Active';
+            } elseif ($status == 'rejected') {
+                $class = 'text-danger';
+                $text = 'Rejected';
+            }
+
+            return '<i class="fa fa-circle mr-1 ' . $class . ' f-10"></i> ' . $text;
+        });
 
         $datatables->editColumn(
             'due_date', function ($row) {
@@ -389,7 +428,7 @@ class TasksDataTable extends BaseDataTable
         // CustomField For export
         $customFieldColumns = CustomField::customFieldData($datatables, Task::CUSTOM_FIELD_MODEL);
 
-        $datatables->rawColumns(array_merge(['short_code', 'board_column','completed_on', 'action', 'clientName', 'due_date', 'users', 'heading', 'check', 'timeLogged', 'timer', 'start_date'], $customFieldColumns));
+        $datatables->rawColumns(array_merge(['short_code', 'board_column','completed_on', 'action', 'clientName', 'due_date', 'users', 'heading', 'check', 'timeLogged', 'timer', 'start_date', 'approval_status'], $customFieldColumns));
 
         return $datatables;
     }
@@ -438,7 +477,7 @@ class TasksDataTable extends BaseDataTable
             ->leftJoin('task_labels', 'task_labels.task_id', '=', 'tasks.id')
             ->selectRaw(
                 'tasks.id, tasks.completed_on, tasks.task_short_code, tasks.start_date, tasks.added_by, projects.project_name, projects.project_admin, tasks.heading, client.name as clientName, creator_user.name as created_by, creator_user.image as created_image, tasks.board_column_id,
-             tasks.due_date, taskboard_columns.column_name as board_column, taskboard_columns.label_color,
+             tasks.due_date, taskboard_columns.column_name as board_column, taskboard_columns.label_color, tasks.weightage, tasks.final_weightage, tasks.approval_status,
               tasks.project_id, tasks.is_private ,( select count("id") from pinned where pinned.task_id = tasks.id and pinned.user_id = ' . user()->id . ') as pinned_task'
             )
             ->addSelect('tasks.company_id') // Company_id is fetched so the we have fetch company relation with it)
@@ -451,7 +490,7 @@ class TasksDataTable extends BaseDataTable
             $model->where('pinned.user_id', user()->id);
         }
 
-        if (!in_array('admin', user_roles())) {
+        if (!in_array('admin', user_roles()) && !in_array('admin-tfms', user_roles()) && !in_array('psm-tfms', user_roles())) {
             if ($request->pinned == 'private') {
                 $model->where(
                     function ($q2) {
@@ -616,6 +655,14 @@ class TasksDataTable extends BaseDataTable
             $model->where('tasks.milestone_id', $request->milestone_id);
         }
 
+        if (in_array('lecturer-tfms', user_roles())) {
+            $model->where('tasks.approval_status', 'approved');
+        } else {
+            if ($request->approval_status != '' && $request->approval_status != null && $request->approval_status != 'all') {
+                $model->where('tasks.approval_status', $request->approval_status);
+            }
+        }
+
         if ($request->searchText != '') {
             $model->where(
                 function ($query) {
@@ -674,6 +721,7 @@ class TasksDataTable extends BaseDataTable
     protected function getColumns()
     {
         $taskSettings = TaskSetting::first();
+        $isPendingView = (request()->approval_status == 'pending');
 
         $data = [
             'check' => [
@@ -684,8 +732,9 @@ class TasksDataTable extends BaseDataTable
             ],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => showId()],
             __('modules.taskCode') => ['data' => 'short_code', 'name' => 'task_short_code', 'title' => __('modules.taskCode')],
-            __('app.timer') . ' ' => ['data' => 'timer', 'name' => 'timer', 'exportable' => false, 'searchable' => false, 'sortable' => false, 'title' => '', 'class' => 'text-right'],
+            __('app.timer') . ' ' => ['data' => 'timer', 'name' => 'timer', 'exportable' => false, 'searchable' => false, 'sortable' => false, 'title' => '', 'class' => 'text-right', 'visible' => !$isPendingView],
             __('app.task') => ['data' => 'heading', 'name' => 'heading', 'exportable' => false, 'title' => __('app.task')],
+            'approval_status' => ['data' => 'approval_status', 'name' => 'approval_status', 'title' => 'Approval Status'],
             __('app.menu.tasks') . ' ' => ['data' => 'task', 'name' => 'heading', 'visible' => false, 'title' => __('app.menu.tasks')],
             __('app.project') => ['data' => 'task_project_name', 'visible' => false, 'name' => 'task_project_name', 'title' => __('app.project')],
             __('modules.tasks.assigned') => ['data' => 'name', 'name' => 'name', 'visible' => false, 'title' => __('modules.tasks.assigned')],
@@ -695,11 +744,13 @@ class TasksDataTable extends BaseDataTable
         ];
 
         if ($taskSettings->hours_logged == 'yes' && in_array('client', user_roles())) {
-            $data[__('modules.employees.hoursLogged')] = ['data' => 'timeLogged', 'name' => 'timeLogged', 'title' => __('modules.employees.hoursLogged')];
+            $data[__('modules.employees.hoursLogged')] = ['data' => 'timeLogged', 'name' => 'timeLogged', 'title' => __('modules.employees.hoursLogged'), 'visible' => !$isPendingView];
         }
 
         $data[ __('modules.tasks.assignTo')] = ['data' => 'users', 'name' => 'member.name', 'exportable' => false, 'title' => __('modules.tasks.assignTo')];
-        $data[__('app.columnStatus')] = ['data' => 'board_column', 'name' => 'board_column', 'exportable' => false, 'searchable' => false, 'title' => __('app.columnStatus')];
+        $data[__('modules.tasks.weightage')] = ['data' => 'weightage', 'name' => 'weightage', 'title' => __('modules.tasks.weightage'), 'class' => 'text-center'];
+        $data[__('modules.tasks.finalWeightage')] = ['data' => 'final_weightage', 'name' => 'final_weightage', 'title' => __('modules.tasks.finalWeightage'), 'class' => 'text-center'];
+        $data[__('app.columnStatus')] = ['data' => 'board_column', 'name' => 'board_column', 'exportable' => false, 'searchable' => false, 'title' => __('app.columnStatus'), 'visible' => !$isPendingView];
         $data[__('app.task') . ' ' . __('app.status')] = ['data' => 'status', 'name' => 'board_column_id', 'visible' => false, 'title' => __('app.task')];
 
         $action = [

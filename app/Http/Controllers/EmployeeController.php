@@ -81,6 +81,10 @@ class EmployeeController extends AccountBaseController
     {
         $viewPermission = user()->permission('view_employees');
 
+        if (in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
+            $viewPermission = 'all';
+        }
+
         abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
 
         if (!request()->ajax()) {
@@ -103,7 +107,7 @@ class EmployeeController extends AccountBaseController
      */
     public function create()
     {
-        $this->pageTitle = __('app.addEmployee');
+        $this->pageTitle = __('Add User');
 
         $addPermission = user()->permission('add_employees');
         abort_403(!in_array($addPermission, ['all', 'added']));
