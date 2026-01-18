@@ -14,8 +14,9 @@ class TFMSRoleSeeder extends Seeder
      *
      * @return void
      */
-    public function run($companyId)
+    public function run()
     {
+        $companyId = \App\Models\Company::first()->id;
         $roles = [
             'admin-tfms' => 'Admin TFMS',
             'psm-tfms' => 'PSM TFMS',

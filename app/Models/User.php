@@ -963,16 +963,21 @@ class User extends BaseModel
             if (in_array($permission, $readOnlyPermissions)) {
                 return 'all';
             }
+
+            $deniedPermissions = ['add_tasks', 'edit_tasks', 'delete_tasks', 'change_status'];
+            if (in_array($permission, $deniedPermissions)) {
+                return 'none';
+            }
         }
 
         if (in_array('lecturer-tfms', user_roles())) {
-            if ($permission == 'view_tasks') {
+            $allowedPermissions = ['view_tasks', 'change_status'];
+            if (in_array($permission, $allowedPermissions)) {
                 return 'owned';
             }
+            
 
-            $nonePermissions = ['add_tasks', 'edit_tasks', 'delete_tasks', 'change_status'];
-
-            if (in_array($permission, $nonePermissions)) {
+            if (in_array($permission, ['add_tasks', 'edit_tasks', 'delete_tasks'])) {
                 return 'none';
             }
         }

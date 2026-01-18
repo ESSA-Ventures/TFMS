@@ -201,17 +201,9 @@ class TaskController extends AccountBaseController
         $task->save();
 
         $admins = User::allAdminTfms($task->company_id);
-        $psms = User::allPsm($task->company_id);
-        $creator = User::find($task->added_by);
         
-        $notifyUsers = $admins->merge($psms);
-        if ($creator) {
-            $notifyUsers->push($creator);
-        }
-        $notifyUsers = $notifyUsers->unique('id');
-
-        if ($notifyUsers->count() > 0) {
-            event(new \App\Events\TaskEvent($task, $notifyUsers, 'TaskRejected'));
+        if ($admins->count() > 0) {
+            event(new \App\Events\TaskEvent($task, $admins, 'TaskRejected'));
         }
 
         return Reply::success('Task rejected successfully');
@@ -407,7 +399,7 @@ class TaskController extends AccountBaseController
         }
 
         $task->weightage = $request->weightage;
-        $task->approval_status = (in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles())) ? 'approved' : 'pending';
+        $task->approval_status = in_array('psm-tfms', user_roles()) ? 'approved' : 'pending';
         $memberCount = count($request->user_id ?? []);
         $task->final_weightage = $memberCount > 0 ? ($request->weightage / $memberCount) : 0;
 

@@ -180,7 +180,7 @@ class TasksDataTable extends BaseDataTable
                 $text = 'Active';
             } elseif ($status == 'rejected') {
                 $class = 'text-danger';
-                $text = 'Rejected';
+                $text = 'Reject';
             }
 
             return '<i class="fa fa-circle mr-1 ' . $class . ' f-10"></i> ' . $text;

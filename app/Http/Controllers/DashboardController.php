@@ -74,6 +74,10 @@ class DashboardController extends AccountBaseController
     {
         $roles = user_roles();
 
+        if (in_array('admin', $roles)) {
+            return $this->advancedDashboard();
+        }
+
         if (in_array('employee', $roles) || in_array('admin-tfms', $roles) || in_array('psm-tfms', $roles) || in_array('lecturer-tfms', $roles)) {
             return $this->employeeDashboard();
         }

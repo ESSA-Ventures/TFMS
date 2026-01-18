@@ -495,44 +495,12 @@ trait EmployeeDashboard
         }
 
         if (in_array('lecturer-tfms', user_roles()) || in_array('psm-tfms', user_roles()) || in_array('admin-tfms', user_roles())) {
-            $totalTaskForceWeightage = Task::where('approval_status', 'approved')
-                ->sum('weightage');
-
+            $totalTaskForceWeightage = 100;
             $lecturers = User::allLecturers(company()->id);
             $workloads = [];
 
             foreach ($lecturers as $lecturer) {
-                $userTaskWeightage = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
-                    ->where('task_users.user_id', $lecturer->id)
-                    ->where('tasks.approval_status', 'approved')
-                    ->sum('tasks.final_weightage');
-
-                $percentage = ($totalTaskForceWeightage > 0) ? ($userTaskWeightage / $totalTaskForceWeightage) * 100 : 0;
-
-                if ($percentage > 50) {
-                    $status = 'Overload';
-                    $color = 'text-danger';
-                    $bg = 'bg-danger';
-                } elseif ($percentage >= 10) {
-                    $status = 'Balanced';
-                    $color = 'text-warning';
-                    $bg = 'bg-warning';
-                } else {
-                    $status = 'Underload';
-                    $color = 'text-success';
-                    $bg = 'bg-success';
-                }
-
-                $workloadData = (object)[
-                    'id' => $lecturer->id,
-                    'name' => $lecturer->name,
-                    'workload' => $userTaskWeightage,
-                    'percentage' => $percentage,
-                    'status' => $status,
-                    'color' => $color,
-                    'bg' => $bg
-                ];
-
+                $workloadData = $this->calculateWorkload($lecturer);
                 $workloads[] = $workloadData;
 
                 if ($lecturer->id == user()->id) {
@@ -545,6 +513,44 @@ trait EmployeeDashboard
         }
 
         return view('dashboard.employee.index', $this->data);
+    }
+
+    public function calculateWorkload($user)
+    {
+        $totalTaskForceWeightage = 100;
+        $completeColumn = TaskboardColumn::completeColumn();
+
+        $userTaskWeightage = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
+            ->where('task_users.user_id', $user->id)
+            ->where('tasks.board_column_id', '!=', $completeColumn->id)
+            ->where('tasks.approval_status', 'approved')
+            ->sum('tasks.weightage');
+
+        $percentage = $userTaskWeightage; // Scale IS 100
+
+        if ($percentage > 50) {
+            $status = 'Overload';
+            $color = 'text-danger';
+            $bg = 'bg-danger';
+        } elseif ($percentage >= 10) {
+            $status = 'Balanced';
+            $color = 'text-warning';
+            $bg = 'bg-warning';
+        } else {
+            $status = 'Underload';
+            $color = 'text-success';
+            $bg = 'bg-success';
+        }
+
+        return (object)[
+            'id' => $user->id,
+            'name' => $user->name,
+            'workload' => $userTaskWeightage,
+            'percentage' => $percentage,
+            'status' => $status,
+            'color' => $color,
+            'bg' => $bg
+        ];
     }
 
     public function clockInModal()

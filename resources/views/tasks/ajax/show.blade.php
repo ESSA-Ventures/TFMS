@@ -122,7 +122,7 @@ $viewProjectPermission = user()->permission('view_projects');
                             @if ($task->approval_status == 'approved')
                                 <i class="fa fa-circle mr-1 text-success f-10"></i> Active
                             @elseif ($task->approval_status == 'rejected')
-                                <i class="fa fa-circle mr-1 text-danger f-10"></i> Rejected
+                                <i class="fa fa-circle mr-1 text-danger f-10"></i> Reject
                             @else
                                 <i class="fa fa-circle mr-1 text-warning f-10"></i> Pending
                             @endif
