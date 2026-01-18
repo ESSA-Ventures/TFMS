@@ -971,11 +971,13 @@ class User extends BaseModel
         }
 
         if (in_array('lecturer-tfms', user_roles())) {
-            $allowedPermissions = ['view_tasks', 'change_status'];
-            if (in_array($permission, $allowedPermissions)) {
+            if ($permission == 'view_tasks') {
                 return 'owned';
             }
-            
+
+            if ($permission == 'change_status') {
+                return 'all';
+            }
 
             if (in_array($permission, ['add_tasks', 'edit_tasks', 'delete_tasks'])) {
                 return 'none';

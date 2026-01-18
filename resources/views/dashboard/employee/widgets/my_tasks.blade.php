@@ -3,6 +3,17 @@
         <div class="col-sm-12">
             <div class="card border-0 b-shadow-4 mb-3 e-d-info">
                 <x-cards.data :title="__('modules.tasks.myTask')" padding="false" otherClasses="h-200">
+                    @if(in_array('lecturer-tfms', user_roles()))
+                        <x-slot name="action">
+                            <select class="form-control form-control-sm" id="year-filter" style="width: 100px;">
+                                @forelse($taskYears as $year)
+                                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                @empty
+                                    <option value="{{ now()->year }}">{{ now()->year }}</option>
+                                @endforelse
+                            </select>
+                        </x-slot>
+                    @endif
                     <x-table>
                         <x-slot name="thead">
                             <th>@lang('app.task')#</th>

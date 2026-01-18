@@ -743,6 +743,13 @@
             })
         });
 
+        $('#year-filter').on('change', function() {
+            var year = $(this).val();
+            var url = "{{ route('dashboard') }}";
+            url = url + '?year=' + year;
+            window.location.href = url;
+        });
+
     </script>
 
     @if (attendance_setting()->radius_check == 'yes' || attendance_setting()->save_current_location)
