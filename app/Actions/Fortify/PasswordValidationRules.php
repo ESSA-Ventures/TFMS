@@ -15,7 +15,7 @@ trait PasswordValidationRules
 
     protected function passwordRules()
     {
-        return ['required', 'string', 'alpha_num', new Password, 'confirmed'];
+        return ['required', 'string', 'regex:/^(?=.*[a-zA-Z])(?=.*\d).{8,16}$/', 'confirmed'];
     }
 
 }

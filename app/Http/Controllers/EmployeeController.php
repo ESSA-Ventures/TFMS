@@ -1095,7 +1095,10 @@ class EmployeeController extends AccountBaseController
         
         $userAuth = UserAuth::find($user->user_auth_id);
         if ($userAuth) {
-            $password = \Illuminate\Support\Str::random(8); // Temporary password
+            $password = \Illuminate\Support\Str::random(10);
+            if (!preg_match('/[a-zA-Z]/', $password) || !preg_match('/\d/', $password)) {
+                $password = \Illuminate\Support\Str::random(8) . '1a';
+            }
             $userAuth->password = \Illuminate\Support\Facades\Hash::make($password);
             $userAuth->is_first_login = true; 
             $userAuth->save();

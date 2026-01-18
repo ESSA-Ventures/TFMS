@@ -114,8 +114,11 @@ class UserAuth extends BaseModel implements AuthenticatableContract, Authorizabl
 
         if (is_null($checkAuth)) {
             if (is_null($password)) {
-                $string = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcefghijklmnopqrstuvwxyz';
-                $password = substr(str_shuffle($string), 0, 8);
+                $password = \Illuminate\Support\Str::random(10);
+                // Ensure it meets alphanumeric criteria (at least one letter and one number)
+                if (!preg_match('/[a-zA-Z]/', $password) || !preg_match('/\d/', $password)) {
+                    $password = \Illuminate\Support\Str::random(8) . '1a';
+                }
             }
 
             if (!is_null($oldEmail)) {
