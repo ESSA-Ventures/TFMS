@@ -39,7 +39,7 @@ class CreateNewUser implements CreatesNewUsers
                 'max:255',
                 Rule::unique(User::class),
             ],
-            'password' => 'required|alpha_num|min:8',
+            'password' => 'required|regex:/^(?=.*[a-zA-Z])(?=.*\d).{8,16}$/',
         ];
 
         if (global_setting()->sign_up_terms == 'yes') {
