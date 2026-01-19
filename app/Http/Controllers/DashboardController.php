@@ -74,11 +74,11 @@ class DashboardController extends AccountBaseController
     {
         $roles = user_roles();
 
-        if (in_array('admin', $roles)) {
-            return $this->advancedDashboard();
-        }
+        // if (in_array('admin', $roles)) {
+        //     return $this->advancedDashboard();
+        // }
 
-        if (in_array('employee', $roles) || in_array('admin-tfms', $roles) || in_array('psm-tfms', $roles) || in_array('lecturer-tfms', $roles)) {
+        if (in_array('admin', $roles) || in_array('employee', $roles) || in_array('admin-tfms', $roles) || in_array('psm-tfms', $roles) || in_array('lecturer-tfms', $roles)) {
             return $this->employeeDashboard();
         }
 
@@ -122,7 +122,9 @@ class DashboardController extends AccountBaseController
 
     public function advancedDashboard()
     {
+        return $this->index();
 
+        /*
         if (in_array('admin', user_roles()) || $this->sidebarUserPermissions['view_overview_dashboard'] == 4
             || $this->sidebarUserPermissions['view_project_dashboard'] == 4
             || $this->sidebarUserPermissions['view_client_dashboard'] == 4
@@ -194,6 +196,7 @@ class DashboardController extends AccountBaseController
 
             return view('dashboard.admin', $this->data);
         }
+        */
     }
 
     public function accountUnverified()

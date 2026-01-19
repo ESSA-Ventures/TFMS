@@ -238,19 +238,17 @@ trait EmployeeDashboard
             ->where('task_users.user_id', $this->user->id)
             ->where('tasks.board_column_id', '<>', $completedTaskColumnId);
 
-        if (in_array('lecturer-tfms', user_roles())) {
+        if (in_array('lecturer-tfms', user_roles()) || in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles())) {
             $tasks->where('tasks.approval_status', 'approved');
 
-            // Categorize by year for lecturer-tfms
-            $allMyTasks = Task::join('task_users', 'task_users.task_id', '=', 'tasks.id')
-                ->where('task_users.user_id', $this->user->id)
-                ->where('tasks.board_column_id', '<>', $completedTaskColumnId)
+            // Categorize by year for TFMS roles
+            $allTfmsTasks = Task::where('tasks.board_column_id', '<>', $completedTaskColumnId)
                 ->where('tasks.approval_status', 'approved')
                 ->select('start_date', 'due_date')
                 ->get();
 
             $years = collect();
-            foreach ($allMyTasks as $task) {
+            foreach ($allTfmsTasks as $task) {
                 if ($task->start_date) {
                     $years->push($task->start_date->year);
                 }
@@ -262,10 +260,12 @@ trait EmployeeDashboard
             $this->taskYears = $years->unique()->sortDesc()->values();
             $this->selectedYear = request('year') ?: ($this->taskYears->first() ?: now()->year);
 
-            $tasks->where(function($query) {
-                $query->whereYear('tasks.start_date', $this->selectedYear)
-                    ->orWhereYear('tasks.due_date', $this->selectedYear);
-            });
+            if (in_array('lecturer-tfms', user_roles())) {
+                $tasks->where(function($query) {
+                    $query->whereYear('tasks.start_date', $this->selectedYear)
+                        ->orWhereYear('tasks.due_date', $this->selectedYear);
+                });
+            }
         }
 
         $this->pendingTasks = $tasks->select('tasks.*')
@@ -536,24 +536,26 @@ trait EmployeeDashboard
             $totalTaskForceWeightageQuery = Task::where('tasks.board_column_id', '!=', $completeColumnId)
                 ->where('tasks.approval_status', 'approved');
 
-            if (in_array('lecturer-tfms', user_roles())) {
-                $totalTaskForceWeightageQuery->where(function($query) {
-                    $query->whereYear('tasks.start_date', $this->selectedYear)
-                        ->orWhereYear('tasks.due_date', $this->selectedYear);
-                });
-            }
+            // Apply year filter for all TFMS roles to ensure consistent data
+            $totalTaskForceWeightageQuery->where(function($query) {
+                $query->whereYear('tasks.start_date', $this->selectedYear)
+                    ->orWhereYear('tasks.due_date', $this->selectedYear);
+            });
 
-            $totalTaskForceWeightage = $totalTaskForceWeightageQuery->sum('tasks.final_weightage');
+            $totalTaskForceWeightage = $totalTaskForceWeightageQuery->sum('tasks.weightage');
 
             $companyId = company() ? company()->id : null;
             $lecturers = User::allLecturers($companyId);
             $workloads = [];
 
             foreach ($lecturers as $lecturer) {
-                $workloadData = $this->calculateWorkload($lecturer, $totalTaskForceWeightage, in_array('lecturer-tfms', user_roles()) ? $this->selectedYear : null);
+                $workloadData = $this->calculateWorkload($lecturer, $totalTaskForceWeightage, $this->selectedYear);
+                
                 if ($lecturer->id == user()->id) {
                     $this->myWorkload = $workloadData;
                 }
+
+                $workloads[] = $workloadData;
             }
 
             $this->workloads = $workloads;

@@ -1,5 +1,15 @@
 <ul>
     <!-- NAV ITEM - DASHBOARD COLLAPSE MENU-->
+    <x-menu-item icon="house" :text="__('app.menu.dashboard')" :link="route('dashboard')">
+        <x-slot name="iconPath">
+            <path fill-rule="evenodd"
+                d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z" />
+            <path fill-rule="evenodd"
+                d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z" />
+        </x-slot>
+    </x-menu-item>
+
+    {{--
     @if (in_array('admin', user_roles())
     || $sidebarUserPermissions['view_overview_dashboard'] == 4
     || $sidebarUserPermissions['view_project_dashboard'] == 4
@@ -22,16 +32,8 @@
                                  :text="__('app.menu.advanceDashboard')" />
             </div>
         </x-menu-item>
-    @else
-        <x-menu-item icon="house" :text="__('app.menu.dashboard')" :link="route('dashboard')">
-            <x-slot name="iconPath">
-                <path fill-rule="evenodd"
-                      d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z" />
-                <path fill-rule="evenodd"
-                      d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z" />
-            </x-slot>
-        </x-menu-item>
     @endif
+    --}}
 
     @if ((in_array('employees', user_modules()) && $sidebarUserPermissions['view_employees'] != 5 && $sidebarUserPermissions['view_employees'] != 'none') || in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles()))
         <x-menu-item icon="people" :text="__('app.menu.employees')" :link="route('employees.index')">

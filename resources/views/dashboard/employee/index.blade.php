@@ -246,6 +246,25 @@
                         </div>
                         <!-- EMP DASHBOARD INFO END -->
 
+                        @if (in_array('lecturer-tfms', user_roles()) || in_array('admin-tfms', user_roles()) || in_array('psm-tfms', user_roles()))
+                        <div class="col-md-12 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h3 class="f-18 f-w-500 mb-0">TFMS Workload Analysis</h3>
+                                <div class="d-flex align-items-center">
+                                    <label class="mr-2 mb-0 f-14 text-dark-grey">Select Year:</label>
+                                    <select class="form-control height-35 f-14" id="year-filter" style="width: 120px;">
+                                        @foreach($taskYears as $year)
+                                            <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                        @if($taskYears->isEmpty())
+                                            <option value="{{ now()->year }}">{{ now()->year }}</option>
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         @if (in_array('lecturer-tfms', user_roles()))
                         <!-- INDIVIDUAL WORKLOAD SECTION START -->
                         @if(isset($myWorkload))
