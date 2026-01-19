@@ -175,7 +175,62 @@
 
 
     </form>
-
+          <hr>
+<h5 class="heading-h5 mb-3">TFMS account login credentials</h5>
+    <table class="table" id="example">
+        <tbody>
+        <tr>
+            <td class="text-left">Admin TFMS</td>
+            <td class="text-break px-0 text-left">admin@tfms.edu</td>
+            <td class="text-right">pass1234</td>
+            <td class="text-right copy-login cursor-pointer" data-email="admin@tfms.edu" data-password="pass1234" data-toggle="tooltip" data-original-title="Click to copy admin credentials">
+                <i class="fa fa-copy"></i>
+            </td>
+        </tr>
+         <tr>
+            <td class="text-left">PSM Coordinator</td>
+            <td class="text-break px-0 text-left">psm@tfms.edu</td>
+            <td class="text-right">pass1234</td>
+            <td class="text-right copy-login cursor-pointer" data-email="psm@tfms.edu" data-password="pass1234" data-toggle="tooltip" data-original-title="Click to copy admin credentials">
+                <i class="fa fa-copy"></i>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-left">Dr Overload</td>
+            <td class="text-break px-0 text-left">overload@tfms.edu</td>
+            <td class="text-right">pass1234</td>
+            <td class="text-right copy-login cursor-pointer" data-email="overload@tfms.edu" data-password="pass1234" data-toggle="tooltip" data-original-title="Click to copy employee credentials">
+                <i class="fa fa-copy"></i>
+            </td>
+        </tr>
+           <tr>
+            <td class="text-left">Dr Balanced</td>
+            <td class="text-break px-0 text-left">balanced@tfms.edu</td>
+            <td class="text-right">pass1234</td>
+            <td class="text-right copy-login cursor-pointer" data-email="balanced@tfms.edu" data-password="pass1234" data-toggle="tooltip" data-original-title="Click to copy employee credentials">
+                <i class="fa fa-copy"></i>
+            </td>
+        </tr>
+         <tr>
+            <td class="text-left">Dr Pendings</td>
+            <td class="text-break px-0 text-left">pending@tfms.edu</td>
+            <td class="text-right">pass1234</td>
+            <td class="text-right copy-login cursor-pointer" data-email="pending@tfms.edu" data-password="pass1234" data-toggle="tooltip" data-original-title="Click to copy employee credentials">
+                <i class="fa fa-copy"></i>
+            </td>
+        </tr>
+         <tr>
+            <td class="text-left">Dr Mixed</td>
+            <td class="text-break px-0 text-left">mixed@tfms.edu</td>
+            <td class="text-right">pass1234</td>
+            <td class="text-right copy-login cursor-pointer" data-email="mixed@tfms.edu" data-password="pass1234" data-toggle="tooltip" data-original-title="Click to copy employee credentials">
+                <i class="fa fa-copy"></i>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    
+    
     <x-slot name="scripts">
 
 
@@ -302,3 +357,54 @@
     </x-slot>
 
 </x-auth>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        document.querySelectorAll('.copy-login').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const email = this.dataset.email;
+                const password = this.dataset.password;
+
+                const emailInput = document.querySelector('input[name="email"]');
+                const passwordInput = document.querySelector('input[name="password"]');
+                const passwordSection = document.getElementById('password-section');
+
+                // Fill credentials
+                if (emailInput) emailInput.value = email;
+                if (passwordInput) passwordInput.value = password;
+
+                // Ensure password section is visible
+                if (passwordSection && passwordSection.classList.contains('d-none')) {
+                    passwordSection.classList.remove('d-none');
+
+                    // Remove NEXT button to avoid confusion
+                    const nextBtn = document.getElementById('submit-next');
+                    if (nextBtn) nextBtn.remove();
+
+                    const signupBtns = ['signup-client-next', 'signup-customer'];
+                    signupBtns.forEach(id => {
+                        const btn = document.getElementById(id);
+                        if (btn) btn.remove();
+                    });
+                }
+
+                // Focus password field
+                passwordInput.focus();
+
+                // Optional visual feedback
+                Swal.fire({
+                    icon: 'success',
+                    text: 'TFMS credentials filled. You can login now.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            });
+        });
+
+    });
+</script>
+
