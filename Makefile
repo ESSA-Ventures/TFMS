@@ -3,10 +3,10 @@ APP = app
 NODE = node
 COMPOSER_FLAGS = --ignore-platform-req=php
 
-.PHONY: help dev build up down install key perms migrate seed fresh npm-install npm-dev npm-build bash logs
+.PHONY: help dev build up down install key perms migrate seed fresh npm-install npm-dev npm-build bash logs seed-tester setup-tester
 
 help:
-	@echo "Targets: dev, build, up, down, install, key, perms, migrate, seed, fresh, npm-install, npm-dev, npm-build, bash, logs"
+	@echo "Targets: dev, build, up, down, install, key, perms, migrate, seed, fresh, npm-install, npm-dev, npm-build, bash, logs, seed-tester, setup-tester"
 
 dev:
 	$(DC) build $(APP)
@@ -56,3 +56,17 @@ bash:
 
 logs:
 	$(DC) logs -f
+
+seed-tester:
+	$(DC) run --rm $(APP) php artisan db:seed --class=ManualTesterSeeder
+
+setup-tester:
+	$(DC) build $(APP)
+	$(DC) run --rm $(APP) composer install $(COMPOSER_FLAGS)
+	$(DC) run --rm $(APP) php artisan key:generate
+	$(DC) run --rm $(APP) sh -c "chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage/app storage/framework storage/logs bootstrap/cache"
+	$(DC) up -d
+	@echo "Waiting for database connection..."
+	sleep 10
+	$(DC) run --rm $(APP) php artisan migrate:fresh --seed
+	$(DC) run --rm $(APP) php artisan db:seed --class=ManualTesterSeeder
